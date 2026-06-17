@@ -2,29 +2,28 @@
 
 import { useState } from "react";
 import { faq } from "@/data/faq";
+import { SectionHeading } from "@/components/SectionHeading";
 
 export function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-background py-20">
+    <section id="faq" className="bg-white py-20 sm:py-24">
       <div className="mx-auto max-w-3xl px-5 sm:px-8">
-        <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold-500">
-            Вопросы и ответы
-          </p>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Частые вопросы
-          </h2>
-        </div>
+        <SectionHeading
+          eyebrow="FAQ"
+          title="Частые вопросы"
+          subtitle="Если не нашли ответ — напишите менеджеру, поможем разобраться."
+          center
+        />
 
-        <div className="mt-12 space-y-3">
+        <div className="mt-10 space-y-3">
           {faq.map((item, i) => {
             const open = openIndex === i;
             return (
               <div
                 key={item.question}
-                className="overflow-hidden rounded-xl border border-navy-100 bg-white"
+                className="overflow-hidden rounded-2xl border border-marine-100 bg-milk"
               >
                 <button
                   type="button"
@@ -32,11 +31,9 @@ export function Faq() {
                   className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
                   aria-expanded={open}
                 >
-                  <span className="font-semibold text-navy-900">
-                    {item.question}
-                  </span>
+                  <span className="font-semibold text-ink">{item.question}</span>
                   <span
-                    className={`flex h-7 w-7 flex-none items-center justify-center rounded-full bg-navy-50 text-navy-700 transition-transform ${
+                    className={`flex h-7 w-7 flex-none items-center justify-center rounded-full bg-marine-50 text-marine-600 transition-transform ${
                       open ? "rotate-45" : ""
                     }`}
                   >
@@ -45,12 +42,10 @@ export function Faq() {
                 </button>
                 <div
                   className="grid transition-all duration-300 ease-out"
-                  style={{
-                    gridTemplateRows: open ? "1fr" : "0fr",
-                  }}
+                  style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
                 >
                   <div className="overflow-hidden">
-                    <p className="px-6 pb-5 text-sm leading-relaxed text-navy-800/70">
+                    <p className="px-6 pb-5 text-sm leading-relaxed text-ink-soft">
                       {item.answer}
                     </p>
                   </div>

@@ -1,78 +1,101 @@
 import { site } from "@/data/site";
-
-const stats = [
-  { value: "9 лет", label: "на воде" },
-  { value: "12 000+", label: "гостей" },
-  { value: "4.9", label: "рейтинг" },
-];
+import { heroBadges } from "@/data/content";
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden bg-navy-900">
-      <div className="absolute inset-0 bg-gradient-to-br from-navy-900 via-navy-800 to-navy-600" />
+    <section className="relative overflow-hidden bg-milk pt-24 pb-14 sm:pt-32 lg:pb-24">
       <div
-        className="absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0 opacity-70"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 20% 20%, rgba(216,178,94,0.25), transparent 40%), radial-gradient(circle at 80% 0%, rgba(31,111,178,0.4), transparent 45%)",
+            "radial-gradient(60% 50% at 80% 0%, rgba(47,166,184,0.14), transparent 70%), radial-gradient(50% 40% at 0% 20%, rgba(31,122,168,0.10), transparent 70%)",
         }}
       />
-      <div
-        className="absolute inset-x-0 bottom-0 h-40 opacity-20"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(115deg, transparent 0 18px, rgba(255,255,255,0.08) 18px 20px)",
-        }}
-      />
+      <svg
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-24 w-full text-mist"
+        viewBox="0 0 1440 120"
+        preserveAspectRatio="none"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M0 60 C 240 110 480 110 720 70 C 960 30 1200 30 1440 70 L1440 120 L0 120 Z" />
+        <path
+          d="M0 86 C 240 120 520 120 720 96 C 960 68 1200 78 1440 96 L1440 120 L0 120 Z"
+          opacity="0.6"
+        />
+      </svg>
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2">
+        <div>
+          <span className="animate-float-up inline-flex items-center gap-2 rounded-full border border-marine-100 bg-white px-4 py-1.5 text-xs font-semibold text-marine-600">
+            <span className="h-1.5 w-1.5 rounded-full bg-sea-400" />
+            {site.city} · самостоятельные прогулки
+          </span>
 
-      <div className="relative mx-auto w-full max-w-7xl px-5 pt-28 pb-16 sm:px-8">
-        <p className="animate-float-up text-xs font-semibold uppercase tracking-[0.3em] text-gold-400">
-          Санкт-Петербург · прогулки по воде
-        </p>
-        <h1
-          className="animate-float-up mt-6 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-6xl"
-          style={{ animationDelay: "0.1s" }}
-        >
-          Аренда катеров <span className="text-gold-400">с капитаном</span> по
-          Неве и каналам
-        </h1>
-        <p
-          className="animate-float-up mt-6 max-w-xl text-lg leading-relaxed text-white/70"
-          style={{ animationDelay: "0.2s" }}
-        >
-          Закрытая прогулка только для вашей компании. Развод мостов, белые
-          ночи и закат над заливом — выберите момент, остальное мы возьмём на
-          себя.
-        </p>
+          <h1
+            className="animate-float-up mt-6 text-4xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl"
+            style={{ animationDelay: "0.05s" }}
+          >
+            Аренда катера{" "}
+            <span className="text-marine-600">без капитана</span> в
+            Санкт-Петербурге
+          </h1>
 
-        <div
-          className="animate-float-up mt-9 flex flex-col gap-4 sm:flex-row"
-          style={{ animationDelay: "0.3s" }}
-        >
-          <a
-            href="#booking"
-            className="rounded-full bg-gold-500 px-8 py-3.5 text-center font-semibold text-navy-900 transition-colors hover:bg-gold-400"
+          <p
+            className="animate-float-up mt-6 max-w-xl text-lg leading-relaxed text-ink-soft"
+            style={{ animationDelay: "0.12s" }}
           >
-            Забронировать прогулку
-          </a>
-          <a
-            href={site.phoneHref}
-            className="rounded-full border border-white/30 px-8 py-3.5 text-center font-semibold text-white transition-colors hover:bg-white/10"
+            Самостоятельные прогулки по Неве, каналам и Финскому заливу.
+            Выбирайте маршрут, время и управляйте катером сами после
+            инструктажа.
+          </p>
+
+          <div
+            className="animate-float-up mt-8 flex flex-col gap-3 sm:flex-row"
+            style={{ animationDelay: "0.2s" }}
           >
-            {site.phone}
-          </a>
+            <a
+              href="#booking"
+              className="rounded-full bg-marine-600 px-7 py-3.5 text-center font-semibold text-white shadow-sm transition-colors hover:bg-marine-700"
+            >
+              Забронировать катер
+            </a>
+            <a
+              href="#booking"
+              className="rounded-full border border-marine-200 bg-white px-7 py-3.5 text-center font-semibold text-marine-700 transition-colors hover:border-marine-500"
+            >
+              Узнать свободное время
+            </a>
+          </div>
+
+          <ul
+            className="animate-float-up mt-8 flex flex-wrap gap-2"
+            style={{ animationDelay: "0.28s" }}
+          >
+            {heroBadges.map((b) => (
+              <li
+                key={b}
+                className="rounded-full bg-mist px-3.5 py-1.5 text-sm font-medium text-marine-700"
+              >
+                {b}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div
-          className="animate-float-up mt-16 flex max-w-md gap-10"
-          style={{ animationDelay: "0.4s" }}
+          className="animate-float-up relative"
+          style={{ animationDelay: "0.18s" }}
         >
-          {stats.map((s) => (
-            <div key={s.label}>
-              <div className="text-3xl font-bold text-white">{s.value}</div>
-              <div className="mt-1 text-sm text-white/50">{s.label}</div>
-            </div>
-          ))}
+          <div
+            className="aspect-[4/5] max-h-[440px] w-full rounded-3xl bg-marine-100 bg-cover bg-center shadow-[0_30px_60px_-25px_rgba(12,58,90,0.45)] ring-1 ring-white/60 sm:max-h-none lg:aspect-[4/5]"
+            style={{ backgroundImage: "url('/images/hero-boat-water.svg')" }}
+            role="img"
+            aria-label="Катер на воде Невы на фоне заката"
+          />
+          <div className="animate-sway absolute -bottom-5 -left-4 hidden rounded-2xl border border-marine-100 bg-white/95 px-5 py-4 shadow-lg backdrop-blur sm:block">
+            <div className="text-2xl font-extrabold text-marine-700">Сам</div>
+            <div className="text-xs text-ink-soft">за штурвалом</div>
+          </div>
         </div>
       </div>
     </section>

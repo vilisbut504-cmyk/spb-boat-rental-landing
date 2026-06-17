@@ -1,21 +1,29 @@
 import { Hero } from "@/components/Hero";
-import { Features } from "@/components/Features";
+import { Advantages } from "@/components/Advantages";
+import { Scenarios } from "@/components/Scenarios";
 import { Fleet } from "@/components/Fleet";
 import { Routes } from "@/components/Routes";
 import { Steps } from "@/components/Steps";
-import { Faq } from "@/components/Faq";
+import { Safety } from "@/components/Safety";
+import { Conditions } from "@/components/Conditions";
 import { Booking } from "@/components/Booking";
+import { Faq } from "@/components/Faq";
+import { FinalCta } from "@/components/FinalCta";
 
 export default function Home() {
   return (
     <>
       <Hero />
-      <Features />
+      <Advantages />
+      <Scenarios />
       <Fleet />
       <Routes />
       <Steps />
+      <Safety />
+      <Conditions />
       <Booking />
       <Faq />
+      <FinalCta />
     </>
   );
 }

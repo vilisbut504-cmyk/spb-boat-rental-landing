@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Катер Sunset">
+  <defs>
+    <linearGradient id="bs-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6ead8"/>
+      <stop offset="0.5" stop-color="#f7cda3"/>
+      <stop offset="1" stop-color="#ec9d72"/>
+    </linearGradient>
+    <linearGradient id="bs-water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dd9268"/>
+      <stop offset="0.3" stop-color="#6f7686"/>
+      <stop offset="1" stop-color="#1a4258"/>
+    </linearGradient>
+    <radialGradient id="bs-sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff3df"/>
+      <stop offset="0.55" stop-color="#ffd79b"/>
+      <stop offset="1" stop-color="#ffd79b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bs-sky)"/>
+  <circle cx="400" cy="300" r="190" fill="url(#bs-sun)"/>
+  <circle cx="400" cy="300" r="64" fill="#fff0d6"/>
+  <rect y="328" width="800" height="172" fill="url(#bs-water)"/>
+  <g fill="#ffe0b0" opacity="0.55">
+    <rect x="374" y="340" width="52" height="8" rx="4"/>
+    <rect x="362" y="366" width="76" height="7" rx="3.5"/>
+    <rect x="380" y="392" width="40" height="6" rx="3"/>
+    <rect x="358" y="420" width="84" height="7" rx="3.5"/>
+  </g>
+  <g transform="translate(400 396)">
+    <path d="M-250 36 q250 28 0 84 q-196 -22 -250 -66 z" fill="#0b2c3e" opacity="0.2"/>
+    <path d="M-200 36 q200 76 400 0 l-38 68 q-162 48 -324 0 z" fill="#16384c"/>
+    <path d="M-170 32 q170 60 340 0 l-18 34 q-152 42 -304 0 z" fill="#2c5d72"/>
+    <rect x="-88" y="-22" width="176" height="60" rx="12" fill="#f6efe4"/>
+    <rect x="-70" y="-10" width="140" height="36" rx="6" fill="#d9b27c"/>
+    <rect x="-10" y="-80" width="14" height="58" rx="5" fill="#16384c"/>
+    <path d="M4 -76 l64 34 -64 12 z" fill="#d9b27c"/>
+  </g>
+</svg>

@@ -1,21 +1,22 @@
 export const site = {
-  name: "Нева Чартер",
-  tagline: "Аренда катеров в Санкт-Петербурге",
+  name: "Катер без капитана",
+  city: "Санкт-Петербург",
+  tagline: "Аренда катера без капитана в Санкт-Петербурге",
   phone: "+7 (812) 000-00-00",
   phoneHref: "tel:+78120000000",
-  email: "hello@neva-charter.ru",
+  email: "hello@kater-bez-kapitana.ru",
   telegram: "https://t.me/",
-  whatsapp: "https://wa.me/",
-  address: "Санкт-Петербург, наб. реки Мойки",
+  address: "Санкт-Петербург",
   workHours: "Ежедневно 09:00 – 23:00",
 } as const;
 
 export const navLinks = [
-  { href: "#fleet", label: "Катера" },
+  { href: "#advantages", label: "Преимущества" },
+  { href: "#boats", label: "Катера" },
   { href: "#routes", label: "Маршруты" },
-  { href: "#pricing", label: "Цены" },
-  { href: "#steps", label: "Как заказать" },
-  { href: "#faq", label: "Вопросы" },
+  { href: "#safety", label: "Безопасность" },
+  { href: "#conditions", label: "Условия" },
+  { href: "#faq", label: "FAQ" },
 ] as const;
 
 export const legalLinks = [

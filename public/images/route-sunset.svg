@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" preserveAspectRatio="xMidYMid slice" role="img" aria-label="0:0B =0 2>45">
+  <defs>
+    <linearGradient id="ss-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4ead9"/>
+      <stop offset="0.45" stop-color="#f7d3a8"/>
+      <stop offset="0.75" stop-color="#f0a877"/>
+      <stop offset="1" stop-color="#df7f5f"/>
+    </linearGradient>
+    <linearGradient id="ss-water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e89b6e"/>
+      <stop offset="0.3" stop-color="#7a7e8e"/>
+      <stop offset="1" stop-color="#1c3650"/>
+    </linearGradient>
+    <radialGradient id="ss-sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff5e4"/>
+      <stop offset="0.55" stop-color="#ffd79b"/>
+      <stop offset="1" stop-color="#ffd79b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#ss-sky)"/>
+  <circle cx="400" cy="320" r="230" fill="url(#ss-sun)"/>
+  <circle cx="400" cy="320" r="78" fill="#fff1d6"/>
+
+  <!-- distant land strip -->
+  <g fill="#9a6a52" opacity="0.5">
+    <rect x="0" y="312" width="240" height="14"/>
+    <rect x="560" y="312" width="240" height="14"/>
+    <rect x="120" y="296" width="40" height="16"/>
+    <rect x="640" y="298" width="34" height="14"/>
+  </g>
+
+  <rect y="326" width="800" height="174" fill="url(#ss-water)"/>
+  <g fill="#ffe0b0" opacity="0.55">
+    <rect x="372" y="338" width="56" height="9" rx="4.5"/>
+    <rect x="358" y="364" width="84" height="8" rx="4"/>
+    <rect x="378" y="392" width="44" height="7" rx="3.5"/>
+    <rect x="352" y="424" width="96" height="8" rx="4"/>
+    <rect x="382" y="458" width="36" height="7" rx="3.5"/>
+  </g>
+
+  <g transform="translate(540 420)">
+    <path d="M-120 30 q120 50 240 0 l-26 44 q-96 30 -188 0 z" fill="#16384c"/>
+    <rect x="-50" y="-14" width="100" height="36" rx="7" fill="#2c5d72"/>
+    <rect x="-10" y="-64" width="12" height="50" rx="4" fill="#16384c"/>
+    <path d="M2 -60 l54 28 -54 10 z" fill="#d9b27c"/>
+  </g>
+</svg>

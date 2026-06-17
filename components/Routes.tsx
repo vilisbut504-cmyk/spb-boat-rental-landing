@@ -1,40 +1,52 @@
 import { routes } from "@/data/routes";
+import { SectionHeading } from "@/components/SectionHeading";
+import { RevealGroup } from "@/components/RevealGroup";
 
 export function Routes() {
   return (
-    <section id="routes" className="bg-navy-900 py-20 text-white">
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold-400">
-            Маршруты
-          </p>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-            Куда отправимся
-          </h2>
-          <p className="mt-4 text-white/60">
-            Готовые направления или индивидуальный маршрут — обсудим точки и
-            время старта при бронировании.
-          </p>
-        </div>
+    <section id="routes" className="bg-milk py-20 sm:py-24">
+      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+        <SectionHeading
+          eyebrow="Маршруты"
+          title="Откройте Петербург с воды"
+          subtitle="Готовые направления, которые можно совместить под ваше время на воде."
+        />
 
-        <div className="mt-12 grid gap-px overflow-hidden rounded-2xl bg-white/10 sm:grid-cols-2">
+        <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {routes.map((route) => (
-            <div
+            <article
               key={route.title}
-              className="bg-navy-900 p-8 transition-colors hover:bg-navy-800"
+              className="group flex flex-col overflow-hidden rounded-2xl border border-marine-100 bg-white transition-all hover:-translate-y-1 hover:shadow-md"
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold">{route.title}</h3>
-                <span className="rounded-full border border-gold-400/40 px-3 py-1 text-xs text-gold-400">
-                  {route.duration}
-                </span>
+              <div
+                className="aspect-[8/5] w-full overflow-hidden bg-marine-50 bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.04]"
+                style={{ backgroundImage: `url('${route.image}')` }}
+                role="img"
+                aria-label={route.title}
+              />
+              <div className="flex flex-1 flex-col p-6">
+                <h3 className="text-xl font-bold text-ink">{route.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft">
+                  {route.description}
+                </p>
+                <div className="mt-5 space-y-2 border-t border-marine-100 pt-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-ink-soft">Настроение:</span>
+                    <span className="font-medium text-marine-700">
+                      {route.mood}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-ink-soft">Длительность:</span>
+                    <span className="font-medium text-ink">
+                      {route.duration}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-white/60">
-                {route.description}
-              </p>
-            </div>
+            </article>
           ))}
-        </div>
+        </RevealGroup>
       </div>
     </section>
   );
