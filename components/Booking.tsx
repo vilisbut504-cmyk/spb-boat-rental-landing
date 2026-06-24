@@ -40,6 +40,7 @@ const formatOptions = [
   "День рождения",
   "Семья",
   "Фотосессия",
+  "Разводные мосты",
   "Просто прогулка",
 ];
 
@@ -66,6 +67,7 @@ export function Booking() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [serverMessage, setServerMessage] = useState("");
+  const [testModeNote, setTestModeNote] = useState("");
 
   useEffect(() => {
     if (selectedBoat) {
@@ -99,7 +101,7 @@ export function Booking() {
           time: fields.time,
           guests: fields.guests,
           boatName: fields.boatName,
-          route: fields.route,
+          routeName: fields.route,
           format: fields.format,
           comment: fields.comment,
         }),
@@ -110,6 +112,7 @@ export function Booking() {
         return;
       }
       setServerMessage(data.message ?? "");
+      setTestModeNote(data.testModeNote ?? "");
       setSubmitted(true);
     } catch {
       setServerMessage("Не удалось отправить заявку. Попробуйте позже.");
@@ -128,6 +131,7 @@ export function Booking() {
     setSelectedBoat("");
     setSubmitted(false);
     setServerMessage("");
+    setTestModeNote("");
   };
 
   return (
@@ -162,8 +166,13 @@ export function Booking() {
               </h3>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-soft">
                 {serverMessage ||
-                  "Заявка принята в тестовом режиме. Для боевого запуска подключите Telegram, CRM или почту в API-обработчике."}
+                  "Заявка принята. Менеджер свяжется с вами, уточнит катер, маршрут, условия допуска и свободное время."}
               </p>
+              {testModeNote && (
+                <p className="mt-2 max-w-md text-xs text-ink-soft/70">
+                  {testModeNote}
+                </p>
+              )}
               <button
                 type="button"
                 onClick={resetForm}
@@ -241,6 +250,7 @@ export function Booking() {
                     {boats.map((b) => (
                       <option key={b.slug} value={b.name}>
                         {b.name}
+                        {b.shortName ? ` · ${b.shortName}` : ""}
                       </option>
                     ))}
                   </select>

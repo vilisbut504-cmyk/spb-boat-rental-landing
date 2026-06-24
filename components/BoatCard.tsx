@@ -14,18 +14,22 @@ function SpecRow({ label, value }: { label: string; value?: string }) {
   if (!value) return null;
   return (
     <div className="flex justify-between gap-4 text-sm">
-      <dt className="text-ink-soft">{label}</dt>
+      <dt className="shrink-0 text-ink-soft">{label}</dt>
       <dd className="text-right font-medium text-ink">{value}</dd>
     </div>
   );
 }
 
 export function BoatCard({ boat, priority = false }: Props) {
-  const { scrollToBooking } = useBooking();
+  const { scrollToBooking, scrollToTariffs } = useBooking();
   const [activeIndex, setActiveIndex] = useState(0);
 
   const hasImages = boat.images.length > 0;
   const mainSrc = hasImages ? boat.images[activeIndex] : null;
+
+  const displayName = boat.shortName
+    ? `${boat.name} · ${boat.shortName}`
+    : boat.name;
 
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-marine-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
@@ -49,13 +53,13 @@ export function BoatCard({ boat, priority = false }: Props) {
         )}
 
         {boat.images.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto border-t border-marine-100 bg-milk p-3">
+          <div className="flex gap-2 overflow-x-auto border-t border-marine-100 bg-milk p-3 [-webkit-overflow-scrolling:touch]">
             {boat.thumbnails.map((thumb, i) => (
               <button
                 key={thumb}
                 type="button"
                 onClick={() => setActiveIndex(i)}
-                className={`relative h-[100px] w-[140px] flex-none overflow-hidden rounded-lg border-2 transition-colors ${
+                className={`relative h-[72px] w-[100px] flex-none overflow-hidden rounded-lg border-2 transition-colors sm:h-[100px] sm:w-[140px] ${
                   i === activeIndex
                     ? "border-marine-600"
                     : "border-transparent opacity-80 hover:opacity-100"
@@ -78,11 +82,11 @@ export function BoatCard({ boat, priority = false }: Props) {
       </div>
 
       <div className="flex flex-1 flex-col p-6">
-        <h3 className="text-xl font-bold text-ink">{boat.name}</h3>
+        <h3 className="text-xl font-bold text-ink">{displayName}</h3>
 
         {boat.priceFrom && (
-          <p className="mt-2 text-sm font-semibold text-marine-700">
-            Стоимость: {boat.priceFrom}
+          <p className="mt-2 text-lg font-semibold text-marine-700">
+            от {boat.priceFrom}
           </p>
         )}
 
@@ -94,11 +98,9 @@ export function BoatCard({ boat, priority = false }: Props) {
 
         <dl className="mt-4 space-y-2.5">
           <SpecRow label="Вместимость" value={boat.capacity} />
-          <SpecRow label="Двигатель" value={boat.engine} />
-          <SpecRow label="Мощность" value={boat.power} />
-          <SpecRow label="Скорость" value={boat.maxSpeed} />
-          <SpecRow label="Бензобак" value={boat.fuelTank} />
           <SpecRow label="Условия допуска" value={boat.accessNote} />
+          <SpecRow label="Инструктаж" value={boat.instructionNote} />
+          <SpecRow label="Залог" value={boat.depositNote} />
         </dl>
 
         {boat.comfort && boat.comfort.length > 0 && (
@@ -141,14 +143,14 @@ export function BoatCard({ boat, priority = false }: Props) {
           <button
             type="button"
             onClick={() => scrollToBooking(boat.name)}
-            className="flex-1 rounded-full bg-marine-600 px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-marine-700"
+            className="flex-1 rounded-full bg-marine-600 px-5 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-marine-700"
           >
             Забронировать
           </button>
           <button
             type="button"
-            onClick={() => scrollToBooking(boat.name)}
-            className="flex-1 rounded-full border border-marine-200 px-5 py-2.5 text-center text-sm font-semibold text-marine-700 transition-colors hover:border-marine-500"
+            onClick={scrollToTariffs}
+            className="flex-1 rounded-full border border-marine-200 px-5 py-3 text-center text-sm font-semibold text-marine-700 transition-colors hover:border-marine-500"
           >
             Смотреть тарифы
           </button>

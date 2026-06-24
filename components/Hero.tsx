@@ -1,5 +1,6 @@
+import Image from "next/image";
 import { site } from "@/data/site";
-import { heroBadges } from "@/data/content";
+import { heroBadges, heroImage } from "@/data/content";
 
 export function Hero() {
   return (
@@ -24,6 +25,7 @@ export function Hero() {
           opacity="0.6"
         />
       </svg>
+
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2">
         <div>
           <span className="animate-float-up inline-flex items-center gap-2 rounded-full border border-marine-100 bg-white px-4 py-1.5 text-xs font-semibold text-marine-600">
@@ -35,18 +37,24 @@ export function Hero() {
             className="animate-float-up mt-6 text-4xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl"
             style={{ animationDelay: "0.05s" }}
           >
-            Аренда катера{" "}
-            <span className="text-marine-600">без капитана</span> в
-            Санкт-Петербурге
+            Аренда катера без капитана в Санкт-Петербурге
           </h1>
 
           <p
             className="animate-float-up mt-6 max-w-xl text-lg leading-relaxed text-ink-soft"
             style={{ animationDelay: "0.12s" }}
           >
-            Самостоятельные прогулки по Неве, каналам и Финскому заливу.
-            Выбирайте маршрут, время и управляйте катером сами после
-            инструктажа.
+            Управляйте катером сами после инструктажа: прогулки по Неве,
+            каналам и Финскому заливу для свидания, компании, дня рождения или
+            заката на воде.
+          </p>
+
+          <p
+            className="animate-float-up mt-4 text-sm font-medium text-marine-700"
+            style={{ animationDelay: "0.16s" }}
+          >
+            Катера до 5 человек · от 4 990 ₽ · инструктаж перед выходом ·
+            маршруты по Петербургу
           </p>
 
           <div
@@ -60,10 +68,10 @@ export function Hero() {
               Забронировать катер
             </a>
             <a
-              href="#booking"
+              href="#boats"
               className="rounded-full border border-marine-200 bg-white px-7 py-3.5 text-center font-semibold text-marine-700 transition-colors hover:border-marine-500"
             >
-              Узнать свободное время
+              Смотреть катера
             </a>
           </div>
 
@@ -86,12 +94,16 @@ export function Hero() {
           className="animate-float-up relative"
           style={{ animationDelay: "0.18s" }}
         >
-          <div
-            className="aspect-[4/5] max-h-[440px] w-full rounded-3xl bg-marine-100 bg-cover bg-center shadow-[0_30px_60px_-25px_rgba(12,58,90,0.45)] ring-1 ring-white/60 sm:max-h-none lg:aspect-[4/5]"
-            style={{ backgroundImage: "url('/images/hero-boat-water.svg')" }}
-            role="img"
-            aria-label="Катер на воде Невы на фоне заката"
-          />
+          <div className="relative aspect-[4/5] max-h-[440px] w-full overflow-hidden rounded-3xl bg-marine-100 shadow-[0_30px_60px_-25px_rgba(12,58,90,0.45)] ring-1 ring-white/60 sm:max-h-none lg:aspect-[4/5]">
+            <Image
+              src={heroImage}
+              alt="Катер на воде в Санкт-Петербурге"
+              fill
+              className="object-cover"
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          </div>
           <div className="animate-sway absolute -bottom-5 -left-4 hidden rounded-2xl border border-marine-100 bg-white/95 px-5 py-4 shadow-lg backdrop-blur sm:block">
             <div className="text-2xl font-extrabold text-marine-700">Сам</div>
             <div className="text-xs text-ink-soft">за штурвалом</div>

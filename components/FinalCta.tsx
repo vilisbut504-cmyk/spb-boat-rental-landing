@@ -1,5 +1,3 @@
-import { site } from "@/data/site";
-
 export function FinalCta() {
   return (
     <section className="bg-milk px-5 pb-20 sm:px-8 sm:pb-24">
@@ -20,15 +18,13 @@ export function FinalCta() {
             Забронировать катер
           </a>
           <a
-            href={site.telegram}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#booking"
             className="w-full rounded-full border border-white/40 px-7 py-3.5 font-semibold text-white transition-colors hover:bg-white/10 sm:w-auto"
           >
             Написать в Telegram
           </a>
           <a
-            href={site.phoneHref}
+            href="#booking"
             className="w-full rounded-full border border-white/40 px-7 py-3.5 font-semibold text-white transition-colors hover:bg-white/10 sm:w-auto"
           >
             Позвонить
