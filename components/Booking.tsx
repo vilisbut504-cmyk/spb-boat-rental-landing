@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SectionHeading } from "@/components/SectionHeading";
+import { useBooking } from "@/components/BookingProvider";
+import { boats } from "@/data/boats";
+import { routes } from "@/data/routes";
 
 type Fields = {
   name: string;
@@ -9,6 +12,8 @@ type Fields = {
   date: string;
   time: string;
   guests: string;
+  boatName: string;
+  route: string;
   format: string;
   comment: string;
   agreePrivacy: boolean;
@@ -21,6 +26,8 @@ const initial: Fields = {
   date: "",
   time: "",
   guests: "",
+  boatName: "",
+  route: "",
   format: "",
   comment: "",
   agreePrivacy: false,
@@ -51,23 +58,63 @@ function validate(f: Fields) {
 }
 
 export function Booking() {
+  const { selectedBoat, setSelectedBoat } = useBooking();
   const [fields, setFields] = useState<Fields>(initial);
   const [errors, setErrors] = useState<
     Partial<Record<keyof Fields, string>>
   >({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [serverMessage, setServerMessage] = useState("");
+
+  useEffect(() => {
+    if (selectedBoat) {
+      setFields((prev) => ({ ...prev, boatName: selectedBoat }));
+    }
+  }, [selectedBoat]);
 
   const update = (key: keyof Fields, value: string | boolean) => {
     setFields((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: undefined }));
+    if (key === "boatName" && typeof value === "string") {
+      setSelectedBoat(value);
+    }
   };
 
-  const onSubmit = (ev: React.FormEvent) => {
+  const onSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     const e = validate(fields);
     setErrors(e);
-    if (Object.keys(e).length === 0) {
+    if (Object.keys(e).length > 0) return;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fields.name,
+          phone: fields.phone,
+          date: fields.date,
+          time: fields.time,
+          guests: fields.guests,
+          boatName: fields.boatName,
+          route: fields.route,
+          format: fields.format,
+          comment: fields.comment,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setServerMessage(data.error ?? "Ошибка отправки");
+        return;
+      }
+      setServerMessage(data.message ?? "");
       setSubmitted(true);
+    } catch {
+      setServerMessage("Не удалось отправить заявку. Попробуйте позже.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -75,6 +122,13 @@ export function Booking() {
     `mt-1.5 w-full rounded-xl border bg-white px-4 py-2.5 text-ink outline-none transition-colors focus:border-marine-500 ${
       errors[key] ? "border-red-400" : "border-marine-100"
     }`;
+
+  const resetForm = () => {
+    setFields(initial);
+    setSelectedBoat("");
+    setSubmitted(false);
+    setServerMessage("");
+  };
 
   return (
     <section id="booking" className="bg-milk py-20 sm:py-24">
@@ -107,15 +161,12 @@ export function Booking() {
                 Заявка принята
               </h3>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-soft">
-                Заявка принята в тестовом режиме. Для боевого запуска подключите
-                Telegram, CRM или почту в API-обработчике.
+                {serverMessage ||
+                  "Заявка принята в тестовом режиме. Для боевого запуска подключите Telegram, CRM или почту в API-обработчике."}
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  setFields(initial);
-                  setSubmitted(false);
-                }}
+                onClick={resetForm}
                 className="mt-6 text-sm font-semibold text-marine-600 hover:text-marine-700"
               >
                 Отправить ещё одну заявку
@@ -123,6 +174,12 @@ export function Booking() {
             </div>
           ) : (
             <form onSubmit={onSubmit} noValidate>
+              {serverMessage && !submitted && (
+                <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {serverMessage}
+                </p>
+              )}
+
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label="Имя" error={errors.name}>
                   <input
@@ -174,6 +231,36 @@ export function Booking() {
                   />
                 </Field>
 
+                <Field label="Выбранный катер" error={undefined}>
+                  <select
+                    value={fields.boatName}
+                    onChange={(e) => update("boatName", e.target.value)}
+                    className={fieldClass("boatName")}
+                  >
+                    <option value="">Не выбран — подберём вместе</option>
+                    {boats.map((b) => (
+                      <option key={b.slug} value={b.name}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Желаемый маршрут" error={undefined}>
+                  <select
+                    value={fields.route}
+                    onChange={(e) => update("route", e.target.value)}
+                    className={fieldClass("route")}
+                  >
+                    <option value="">Выберите маршрут</option>
+                    {routes.map((r) => (
+                      <option key={r.title} value={r.title}>
+                        {r.title}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
                 <Field label="Формат прогулки" error={errors.format}>
                   <select
                     value={fields.format}
@@ -221,9 +308,10 @@ export function Booking() {
 
               <button
                 type="submit"
-                className="mt-7 w-full rounded-full bg-marine-600 px-6 py-3.5 font-semibold text-white transition-colors hover:bg-marine-700"
+                disabled={submitting}
+                className="mt-7 w-full rounded-full bg-marine-600 px-6 py-3.5 font-semibold text-white transition-colors hover:bg-marine-700 disabled:opacity-60"
               >
-                Получить варианты
+                {submitting ? "Отправка…" : "Получить варианты"}
               </button>
             </form>
           )}
@@ -246,7 +334,9 @@ function Field({
     <label className="block">
       <span className="text-sm font-medium text-ink">{label}</span>
       {children}
-      {error && <span className="mt-1 block text-xs text-red-500">{error}</span>}
+      {error && (
+        <span className="mt-1 block text-xs text-red-500">{error}</span>
+      )}
     </label>
   );
 }

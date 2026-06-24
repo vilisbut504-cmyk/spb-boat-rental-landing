@@ -1,0 +1,67 @@
+{
+  "processed": 10,
+  "skipped": 0,
+  "errors": [],
+  "boats": {
+    "general": [
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/4P1A4858 copy.jpg",
+        "rel": "4P1A4858 copy.jpg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      }
+    ],
+    "belyy-kater": [
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/Белый катер фото 1.jpeg",
+        "rel": "Белый катер фото 1.jpeg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      },
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/Белый катер фото 2.jpeg",
+        "rel": "Белый катер фото 2.jpeg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      }
+    ],
+    "goluboy-kater": [
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/Голубой катер фото 2.jpg",
+        "rel": "Голубой катер фото 2.jpg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      },
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/Голубой катер, фото 1.jpg",
+        "rel": "Голубой катер, фото 1.jpg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      },
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/Голубой катер, фото 3.jpg",
+        "rel": "Голубой катер, фото 3.jpg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      }
+    ],
+    "zheltyy-kater": [
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/Желтый катер, фото 1.jpeg",
+        "rel": "Желтый катер, фото 1.jpeg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      }
+    ],
+    "krasnyy-kater": [
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/Красный катер фото 2.jpeg",
+        "rel": "Красный катер фото 2.jpeg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      },
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/Красный катер фото 4.jpeg",
+        "rel": "Красный катер фото 4.jpeg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      },
+      {
+        "full": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images/Красный катер, фото.jpeg",
+        "rel": "Красный катер, фото.jpeg",
+        "baseDir": "/Users/zannabutaeva/Downloads/spb-boat-rental-landing/public/images"
+      }
+    ]
+  }
+}

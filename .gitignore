@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Original boat photos — kept locally; optimized WebP in boats-webp/ is committed
+/public/images/*.jpg
+/public/images/*.jpeg
+/public/images/*.JPG
+/public/images/*.JPEG
+/public/images/*.png
+/public/images/*.PNG
+/public/images/*.webp
+/public/images/*.WEBP
+!/public/images/boats-webp/**
+!/public/images/boats-webp-thumbs/**
