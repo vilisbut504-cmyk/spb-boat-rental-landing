@@ -1,4 +1,5 @@
 import { boats } from "@/data/boats";
+import { fleetEngineNote } from "@/data/content";
 import { SectionHeading } from "@/components/SectionHeading";
 import { RevealGroup } from "@/components/RevealGroup";
 import { BoatCard } from "@/components/BoatCard";
@@ -10,8 +11,10 @@ export function Fleet() {
         <SectionHeading
           eyebrow="Катера"
           title="Выберите свой катер на свой вкус"
-          subtitle="У нас реальные катера из большого парка — выберите свой для прогулки по Неве, каналам и Финскому заливу. Подробности можно уточнить у менеджера."
+          subtitle="У нас реальные катера из большого парка — выберите свой для прогулки по Неве, каналам и Финскому заливу."
         />
+
+        <p className="mt-4 text-sm text-ink-soft">{fleetEngineNote}</p>
 
         <RevealGroup className="mt-12 grid gap-8 md:grid-cols-2">
           {boats.map((boat, index) => (

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { SectionHeading } from "@/components/SectionHeading";
 import { useBooking } from "@/components/BookingProvider";
 import { boats } from "@/data/boats";
+import { prepaymentNote } from "@/data/content";
 import { routes } from "@/data/routes";
 
 type Fields = {
@@ -109,11 +110,15 @@ export function Booking() {
           phone: fields.phone,
           date: fields.date,
           time: fields.time,
+          people: fields.guests,
           guests: fields.guests,
           boatName: fields.boatName,
           routeName: fields.route,
           format: fields.format,
           comment: fields.comment,
+          prepaymentNote,
+          privacyAccepted: fields.agreePrivacy,
+          rulesAccepted: fields.agreeRules,
         }),
       });
       const data = await res.json();
@@ -177,7 +182,7 @@ export function Booking() {
               </h3>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-soft">
                 {serverMessage ||
-                  "Заявка принята. Менеджер свяжется с вами, уточнит катер, маршрут, условия допуска и свободное время."}
+                  "Заявка принята. Менеджер свяжется с вами, уточнит катер, маршрут, свободное время и подскажет способ внесения предоплаты 1 000 ₽ в счёт прогулки."}
               </p>
               {testModeNote && (
                 <p className="mt-2 max-w-md text-xs text-ink-soft/70">
@@ -325,6 +330,12 @@ export function Booking() {
                   error={errors.agreeRules}
                   label="Согласие с условиями аренды"
                 />
+              </div>
+
+              <div className="mt-6 rounded-xl border border-marine-100 bg-marine-50 px-4 py-3.5 text-sm leading-relaxed text-ink-soft">
+                Бронь подтверждается после предоплаты 1 000 ₽. Сумма входит в
+                стоимость прогулки. Способ внесения предоплаты подскажет
+                менеджер.
               </div>
 
               <button

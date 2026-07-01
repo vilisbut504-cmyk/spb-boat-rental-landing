@@ -1,62 +1,75 @@
+import Image from "next/image";
 import Link from "next/link";
-import { legalLinks, navLinks, site } from "@/data/site";
+import { legalLinks, site } from "@/data/site";
+import { brandAssets } from "@/data/content";
 
 export function Footer() {
-  return (
-    <footer className="border-t border-marine-100 bg-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-4">
-        <div className="md:col-span-2">
-          <div className="text-lg font-bold tracking-tight text-ink">
-            {site.name}
-          </div>
-          <p className="mt-1 text-sm font-medium text-marine-600">{site.city}</p>
-          <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-soft">
-            Аренда катера без капитана в Санкт-Петербурге. Самостоятельные
-            прогулки по Неве, каналам и Финскому заливу после инструктажа.
-          </p>
-          <p className="mt-4 text-sm text-ink-soft">{site.workHours}</p>
-        </div>
+  const year = new Date().getFullYear();
 
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-ink">
-            Разделы
-          </h3>
-          <ul className="mt-4 space-y-2 text-sm text-ink-soft">
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <a href={link.href} className="hover:text-marine-600">
-                  {link.label}
+  return (
+    <footer className="border-t border-marine-100 bg-ink text-white">
+      <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+        <div className="grid gap-10 md:grid-cols-3">
+          <div>
+            <Link href="/" className="inline-block">
+              <span className="inline-flex rounded-2xl bg-white/95 px-4 py-3 ring-1 ring-white/20">
+                <Image
+                  src={brandAssets.logoFull}
+                  alt={brandAssets.logoAlt}
+                  width={700}
+                  height={200}
+                  className="h-auto w-[200px] max-w-full object-contain"
+                />
+              </span>
+            </Link>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">
+              {site.tagline}. Самостоятельные прогулки по Неве, каналам и
+              Финскому заливу — без прав, легально, после инструктажа.
+            </p>
+            <p className="mt-3 text-sm text-white/50">{site.city}</p>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/50">
+              Навигация
+            </p>
+            <ul className="mt-4 space-y-2">
+              {legalLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/70 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/50">
+              Контакты
+            </p>
+            <ul className="mt-4 space-y-2 text-sm text-white/70">
+              <li>
+                <a href={site.phoneHref} className="hover:text-white">
+                  Телефон: {site.phone}
                 </a>
               </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-ink">
-            Документы
-          </h3>
-          <ul className="mt-4 space-y-2 text-sm text-ink-soft">
-            {legalLinks.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href} className="hover:text-marine-600">
-                  {link.label}
-                </Link>
+              <li>
+                <a href={`mailto:${site.email}`} className="hover:text-white">
+                  Email: {site.email}
+                </a>
               </li>
-            ))}
-          </ul>
+              <li>{site.workHours}</li>
+              <li>{site.address}</li>
+            </ul>
+          </div>
         </div>
-      </div>
 
-      <div className="border-t border-marine-100">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-6 text-xs text-ink-soft sm:px-8 md:flex-row md:items-center md:justify-between">
-          <p>
-            © {new Date().getFullYear()} {site.name}. {site.city}.
-          </p>
-          <p className="max-w-md md:text-right">
-            Финальные условия аренды подтверждаются менеджером перед
-            бронированием.
-          </p>
+        <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-white/40">
+          © {year} {site.name} · {site.city}
         </div>
       </div>
     </footer>

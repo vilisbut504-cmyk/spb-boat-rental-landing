@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "images:webp": "node scripts/optimize-images-to-webp.mjs",
+    "brand:images": "node scripts/optimize-brand-assets.mjs",
     "check:build": "npm run images:webp && npm run build"
   },
   "dependencies": {

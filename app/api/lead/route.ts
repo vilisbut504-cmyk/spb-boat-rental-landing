@@ -1,20 +1,25 @@
 import { NextResponse } from "next/server";
+import { prepaymentNote } from "@/data/content";
 
 export type LeadPayload = {
   name: string;
   phone: string;
   date: string;
   time: string;
-  guests: string;
+  guests?: string;
+  people?: string;
   boatName?: string;
   routeName?: string;
   route?: string;
   format: string;
   comment?: string;
+  prepaymentNote?: string;
+  privacyAccepted?: boolean;
+  rulesAccepted?: boolean;
 };
 
 const SUCCESS_MESSAGE =
-  "Заявка принята. Менеджер свяжется с вами, уточнит катер, маршрут, условия допуска и свободное время.";
+  "Заявка принята. Менеджер свяжется с вами, уточнит катер, маршрут, свободное время и подскажет способ внесения предоплаты 1 000 ₽ в счёт прогулки.";
 
 const TEST_MODE_NOTE =
   "Сейчас заявка сохранена в тестовом режиме. Подключите LEADS_WEBHOOK_URL для отправки в CRM.";
@@ -35,11 +40,14 @@ export async function POST(request: Request) {
       phone: body.phone.trim(),
       date: body.date,
       time: body.time,
-      guests: body.guests,
+      guests: body.guests ?? body.people ?? "",
       boatName: body.boatName?.trim() || "",
       routeName: body.routeName?.trim() || body.route?.trim() || "",
       format: body.format,
       comment: body.comment?.trim() || "",
+      prepaymentNote: body.prepaymentNote?.trim() || prepaymentNote,
+      privacyAccepted: Boolean(body.privacyAccepted),
+      rulesAccepted: Boolean(body.rulesAccepted),
       receivedAt: new Date().toISOString(),
     };
 

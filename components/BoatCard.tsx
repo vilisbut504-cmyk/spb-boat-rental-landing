@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { Boat } from "@/data/boats";
+import { prepaymentBookingLine } from "@/data/content";
 import { useBooking } from "@/components/BookingProvider";
 
 type Props = {
@@ -91,9 +92,14 @@ export function BoatCard({ boat, priority = false }: Props) {
         <h3 className="text-xl font-bold text-ink">{displayName}</h3>
 
         {boat.priceFrom && (
-          <p className="mt-2 text-lg font-semibold text-marine-700">
-            от {boat.priceFrom}
-          </p>
+          <div className="mt-2">
+            <p className="text-lg font-semibold text-marine-700">
+              от {boat.priceFrom}
+            </p>
+            <p className="mt-1 text-sm font-medium text-ink-soft">
+              {prepaymentBookingLine}
+            </p>
+          </div>
         )}
 
         {boat.description && (
@@ -105,12 +111,7 @@ export function BoatCard({ boat, priority = false }: Props) {
         <dl className="mt-4 space-y-2.5">
           <SpecRow label="Вместимость" value={boat.capacity} />
           <SpecRow label="Инструктаж" value={boat.instructionNote} />
-          <SpecRow label="Залог" value={boat.depositNote} />
         </dl>
-
-        {boat.engineNote && (
-          <p className="mt-4 text-sm text-ink-soft">{boat.engineNote}</p>
-        )}
 
         {boat.comfort && boat.comfort.length > 0 && (
           <div className="mt-4">

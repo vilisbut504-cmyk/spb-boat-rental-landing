@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Providers } from "@/components/Providers";
+import { brandAssets } from "@/data/content";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -11,21 +12,28 @@ const manrope = Manrope({
   display: "swap",
 });
 
+const title = "Питер Катер — аренда катера без капитана в Санкт-Петербурге";
+const description =
+  "Самостоятельные прогулки на катере по Неве, каналам и Финскому заливу. Управляйте катером сами без прав, легально и после инструктажа.";
+
 export const metadata: Metadata = {
-  title: "Аренда катера без капитана в Санкт-Петербурге",
-  description:
-    "Аренда катера без капитана в Санкт-Петербурге. Самостоятельные прогулки по Неве, каналам и Финскому заливу. Управляйте катером сами после инструктажа.",
+  title,
+  description,
+  icons: {
+    icon: brandAssets.favicon,
+    apple: brandAssets.favicon,
+  },
   keywords: [
     "аренда катера без капитана спб",
     "катер без капитана санкт-петербург",
     "арендовать катер самому",
     "прогулка на катере нева",
     "катер финский залив",
+    "питер катер",
   ],
   openGraph: {
-    title: "Аренда катера без капитана в Санкт-Петербурге",
-    description:
-      "Самостоятельные прогулки по Неве, каналам и Финскому заливу. Управляйте катером сами после инструктажа.",
+    title,
+    description,
     locale: "ru_RU",
     type: "website",
   },

@@ -2,7 +2,6 @@ import {
   tariffs,
   tariffConditions,
   tariffDisclaimer,
-  rightsNote,
 } from "@/data/content";
 import { SectionHeading } from "@/components/SectionHeading";
 
@@ -13,7 +12,7 @@ export function Conditions() {
         <SectionHeading
           eyebrow="Тарифы"
           title="Тарифы и условия аренды"
-          subtitle="Стоимость зависит от катера, даты, времени и маршрута. Финальные условия подтверждает менеджер перед бронированием."
+          subtitle="Выберите длительность прогулки, а менеджер подтвердит свободное время, катер и маршрут."
         />
 
         <div className="mt-12 grid gap-8 lg:grid-cols-2">
@@ -50,9 +49,8 @@ export function Conditions() {
           </div>
         </div>
 
-        <div className="mt-8 space-y-3 rounded-2xl border border-marine-100 bg-marine-50 px-6 py-5 text-sm leading-relaxed text-ink-soft">
+        <div className="mt-8 rounded-2xl border border-marine-100 bg-marine-50 px-6 py-5 text-sm leading-relaxed text-ink-soft">
           <p>{tariffDisclaimer}</p>
-          <p>{rightsNote}</p>
         </div>
       </div>
     </section>

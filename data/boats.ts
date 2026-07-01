@@ -12,9 +12,7 @@ export type Boat = {
   comfort?: string[];
   bestFor?: string[];
   description?: string;
-  depositNote?: string;
   instructionNote?: string;
-  engineNote?: string;
   badge?: string;
   images: string[];
   thumbnails: string[];
@@ -44,8 +42,6 @@ const sharedComfort = [
   "карта маршрута",
 ];
 
-const sharedEngineNote = "Оснащён японским мотором Suzuki / Tohatsu";
-
 export const boats: Boat[] = [
   {
     slug: "goluboy-kater",
@@ -55,9 +51,7 @@ export const boats: Boat[] = [
     capacity: "до 4 человек",
     description:
       "Лёгкий прогулочный катер для спокойного маршрута по воде, свидания или первой самостоятельной прогулки после инструктажа.",
-    depositNote: "уточняется при бронировании",
-    instructionNote: "бесплатно перед выходом на воду",
-    engineNote: sharedEngineNote,
+    instructionNote: "бесплатный инструктаж перед выходом",
     comfort: sharedComfort,
     bestFor: ["свидание", "прогулка по Неве", "первая самостоятельная прогулка"],
     images: goluboy.images,
@@ -71,9 +65,7 @@ export const boats: Boat[] = [
     capacity: "до 4 человек",
     description:
       "Яркий катер для прогулки с друзьями, дня рождения или фотосессии на воде.",
-    depositNote: "уточняется при бронировании",
-    instructionNote: "бесплатно перед выходом на воду",
-    engineNote: sharedEngineNote,
+    instructionNote: "бесплатный инструктаж перед выходом",
     comfort: sharedComfort,
     bestFor: ["друзья", "день рождения", "фотосессия", "прогулка по Неве"],
     images: krasnyy.images,
@@ -87,9 +79,7 @@ export const boats: Boat[] = [
     capacity: "до 4 человек",
     description:
       "Светлый прогулочный катер для аккуратной городской прогулки по Неве, каналам и маршрутам Петербурга.",
-    depositNote: "уточняется при бронировании",
-    instructionNote: "бесплатно перед выходом на воду",
-    engineNote: sharedEngineNote,
+    instructionNote: "бесплатный инструктаж перед выходом",
     comfort: sharedComfort,
     bestFor: ["семья", "прогулка по Неве", "каналы Петербурга", "фотосессия"],
     images: belyy.images,
@@ -103,9 +93,7 @@ export const boats: Boat[] = [
     capacity: "до 5 человек",
     description:
       "Заметный катер для небольшой компании, летней прогулки и ярких фотографий на воде.",
-    depositNote: "уточняется при бронировании",
-    instructionNote: "бесплатно перед выходом на воду",
-    engineNote: sharedEngineNote,
+    instructionNote: "бесплатный инструктаж перед выходом",
     badge: "Единственный катер в парке до 5 человек",
     comfort: sharedComfort,
     bestFor: ["друзья", "фотосессия", "летняя прогулка", "закат на воде"],
