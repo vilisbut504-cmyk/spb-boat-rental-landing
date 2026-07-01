@@ -8,7 +8,7 @@ export function Scenarios() {
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
         <SectionHeading
           eyebrow="Для кого"
-          title="Прогулка под любой повод"
+          title="Подходит под любой красивый повод"
           subtitle="Подберём катер и маршрут под формат вашей прогулки по Петербургу."
         />
 
@@ -21,7 +21,7 @@ export function Scenarios() {
               <span className="text-2xl" aria-hidden="true">
                 {s.emoji}
               </span>
-              <span className="font-semibold text-ink">{s.title}            </span>
+              <span className="font-semibold text-ink">{s.title}</span>
             </div>
           ))}
         </RevealGroup>

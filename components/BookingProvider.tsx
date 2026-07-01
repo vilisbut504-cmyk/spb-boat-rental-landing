@@ -2,10 +2,17 @@
 
 import { createContext, useContext, useState, useCallback } from "react";
 
+type BookingScrollOptions = {
+  boatName?: string;
+  routeName?: string;
+};
+
 type BookingContextValue = {
   selectedBoat: string;
+  selectedRoute: string;
   setSelectedBoat: (name: string) => void;
-  scrollToBooking: (boatName?: string) => void;
+  setSelectedRoute: (name: string) => void;
+  scrollToBooking: (options?: BookingScrollOptions) => void;
   scrollToTariffs: () => void;
 };
 
@@ -13,9 +20,11 @@ const BookingContext = createContext<BookingContextValue | null>(null);
 
 export function BookingProvider({ children }: { children: React.ReactNode }) {
   const [selectedBoat, setSelectedBoat] = useState("");
+  const [selectedRoute, setSelectedRoute] = useState("");
 
-  const scrollToBooking = useCallback((boatName?: string) => {
-    if (boatName) setSelectedBoat(boatName);
+  const scrollToBooking = useCallback((options?: BookingScrollOptions) => {
+    if (options?.boatName) setSelectedBoat(options.boatName);
+    if (options?.routeName) setSelectedRoute(options.routeName);
     const el = document.getElementById("booking");
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
@@ -27,7 +36,14 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <BookingContext.Provider
-      value={{ selectedBoat, setSelectedBoat, scrollToBooking, scrollToTariffs }}
+      value={{
+        selectedBoat,
+        selectedRoute,
+        setSelectedBoat,
+        setSelectedRoute,
+        scrollToBooking,
+        scrollToTariffs,
+      }}
     >
       {children}
     </BookingContext.Provider>

@@ -34,6 +34,12 @@ export function BoatCard({ boat, priority = false }: Props) {
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-marine-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
       <div className="relative">
+        {boat.badge && (
+          <span className="absolute left-4 top-4 z-10 rounded-full bg-marine-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm">
+            {boat.badge}
+          </span>
+        )}
+
         {mainSrc ? (
           <div className="relative aspect-[900/650] w-full overflow-hidden bg-marine-50">
             <Image
@@ -98,10 +104,13 @@ export function BoatCard({ boat, priority = false }: Props) {
 
         <dl className="mt-4 space-y-2.5">
           <SpecRow label="Вместимость" value={boat.capacity} />
-          <SpecRow label="Условия допуска" value={boat.accessNote} />
           <SpecRow label="Инструктаж" value={boat.instructionNote} />
           <SpecRow label="Залог" value={boat.depositNote} />
         </dl>
+
+        {boat.engineNote && (
+          <p className="mt-4 text-sm text-ink-soft">{boat.engineNote}</p>
+        )}
 
         {boat.comfort && boat.comfort.length > 0 && (
           <div className="mt-4">
@@ -142,7 +151,7 @@ export function BoatCard({ boat, priority = false }: Props) {
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <button
             type="button"
-            onClick={() => scrollToBooking(boat.name)}
+            onClick={() => scrollToBooking({ boatName: boat.name })}
             className="flex-1 rounded-full bg-marine-600 px-5 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-marine-700"
           >
             Забронировать

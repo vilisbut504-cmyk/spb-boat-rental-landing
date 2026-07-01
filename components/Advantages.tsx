@@ -10,7 +10,7 @@ export function Advantages() {
         <SectionHeading
           eyebrow="Преимущества"
           title="Свобода на воде — в ваших руках"
-          subtitle="Вы не пассажир, а капитан своей прогулки. Мы помогаем подготовиться и выйти на воду уверенно."
+          subtitle="Не просто прогулка, а возможность самому управлять катером и увидеть Петербург с воды по-своему."
         />
 
         <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">

@@ -44,16 +44,16 @@ export function Hero() {
             className="animate-float-up mt-6 max-w-xl text-lg leading-relaxed text-ink-soft"
             style={{ animationDelay: "0.12s" }}
           >
-            Управляйте катером сами после инструктажа: прогулки по Неве,
-            каналам и Финскому заливу для свидания, компании, дня рождения или
-            заката на воде.
+            Самостоятельные прогулки по Неве, каналам и Финскому заливу.
+            Управляйте катером сами, без прав, легально и уверенно — после
+            бесплатного инструктажа.
           </p>
 
           <p
             className="animate-float-up mt-4 text-sm font-medium text-marine-700"
             style={{ animationDelay: "0.16s" }}
           >
-            Катера до 5 человек · от 4 990 ₽ · инструктаж перед выходом ·
+            Катера до 5 человек · от 4 990 ₽ · бесплатный инструктаж ·
             маршруты по Петербургу
           </p>
 
@@ -104,9 +104,11 @@ export function Hero() {
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
           </div>
-          <div className="animate-sway absolute -bottom-5 -left-4 hidden rounded-2xl border border-marine-100 bg-white/95 px-5 py-4 shadow-lg backdrop-blur sm:block">
-            <div className="text-2xl font-extrabold text-marine-700">Сам</div>
-            <div className="text-xs text-ink-soft">за штурвалом</div>
+          <div className="animate-sway absolute -bottom-4 left-3 rounded-2xl border border-marine-200 bg-white/95 px-5 py-4 shadow-lg backdrop-blur sm:-bottom-5 sm:-left-4">
+            <div className="text-lg font-extrabold leading-tight text-marine-700 sm:text-xl">
+              Ты сам
+            </div>
+            <div className="text-sm font-semibold text-sea-500">за штурвалом</div>
           </div>
         </div>
       </div>

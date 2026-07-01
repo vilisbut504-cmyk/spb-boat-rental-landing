@@ -59,7 +59,8 @@ function validate(f: Fields) {
 }
 
 export function Booking() {
-  const { selectedBoat, setSelectedBoat } = useBooking();
+  const { selectedBoat, selectedRoute, setSelectedBoat, setSelectedRoute } =
+    useBooking();
   const [fields, setFields] = useState<Fields>(initial);
   const [errors, setErrors] = useState<
     Partial<Record<keyof Fields, string>>
@@ -75,11 +76,20 @@ export function Booking() {
     }
   }, [selectedBoat]);
 
+  useEffect(() => {
+    if (selectedRoute) {
+      setFields((prev) => ({ ...prev, route: selectedRoute }));
+    }
+  }, [selectedRoute]);
+
   const update = (key: keyof Fields, value: string | boolean) => {
     setFields((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: undefined }));
     if (key === "boatName" && typeof value === "string") {
       setSelectedBoat(value);
+    }
+    if (key === "route" && typeof value === "string") {
+      setSelectedRoute(value);
     }
   };
 
@@ -129,6 +139,7 @@ export function Booking() {
   const resetForm = () => {
     setFields(initial);
     setSelectedBoat("");
+    setSelectedRoute("");
     setSubmitted(false);
     setServerMessage("");
     setTestModeNote("");
