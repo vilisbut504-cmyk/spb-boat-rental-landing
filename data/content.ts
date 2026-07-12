@@ -7,7 +7,7 @@ export const prepaymentBookingLine = "Бронь: 1 000 ₽ в счёт ката
 export const prepaymentHeroBadge = "Бронь от 1 000 ₽ в счёт катания";
 
 export const fleetEngineNote =
-  "Катера оснащены японскими моторами Suzuki и Tohatsu.";
+  "Все катера оснащены японскими четырёхтактными инжекторными моторами Suzuki и Tohatsu.";
 
 export const tariffs = [
   { label: "60 минут", price: "от 4 990 ₽" },
@@ -100,16 +100,15 @@ export const safetyCards = [
 ];
 
 export const heroBadges = [
-  "Бронь от 1 000 ₽ в счёт катания",
+  "Без прав ГИМС",
+  "Легально после инструктажа",
   "Санкт-Петербург",
-  "От 18 лет",
-  "Инструктаж перед выходом",
-  "Катера до 5 человек",
-  "Маршруты по Неве и заливу",
+  "До 5 человек",
+  "Бронь 1 000 ₽ в счёт катания",
 ];
 
-/** Лучшее доступное фото для hero (из оптимизированных WebP) */
-export const heroImage = "/images/boats-webp/general/01.webp";
+/** Hero fleet photo — Lakhta Center, four boats */
+export const heroImage = "/images/hero/hero-fleet-lakhta.webp";
 
 export const brandAssets = {
   logoSmall: "/images/brand/logo-piter-kater-small.webp",

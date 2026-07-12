@@ -71,14 +71,17 @@ export function Booking() {
   const [serverMessage, setServerMessage] = useState("");
   const [testModeNote, setTestModeNote] = useState("");
 
+  // Sync boat/route chosen from Fleet/Routes into the form without resetting other fields.
   useEffect(() => {
     if (selectedBoat) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional BookingProvider → form sync
       setFields((prev) => ({ ...prev, boatName: selectedBoat }));
     }
   }, [selectedBoat]);
 
   useEffect(() => {
     if (selectedRoute) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional BookingProvider → form sync
       setFields((prev) => ({ ...prev, route: selectedRoute }));
     }
   }, [selectedRoute]);
@@ -263,12 +266,14 @@ export function Booking() {
                     className={fieldClass("boatName")}
                   >
                     <option value="">Не выбран — подберём вместе</option>
-                    {boats.map((b) => (
-                      <option key={b.slug} value={b.name}>
-                        {b.name}
-                        {b.shortName ? ` · ${b.shortName}` : ""}
-                      </option>
-                    ))}
+                    {boats
+                      .filter((b) => b.bookable)
+                      .map((b) => (
+                        <option key={b.slug} value={b.name}>
+                          {b.name}
+                          {b.shortName ? ` · ${b.shortName}` : ""}
+                        </option>
+                      ))}
                   </select>
                 </Field>
 

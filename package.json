@@ -9,6 +9,7 @@
     "lint": "eslint",
     "images:webp": "node scripts/optimize-images-to-webp.mjs",
     "brand:images": "node scripts/optimize-brand-assets.mjs",
+    "images:incoming": "node scripts/process-incoming-fleet.mjs",
     "check:build": "npm run images:webp && npm run build"
   },
   "dependencies": {

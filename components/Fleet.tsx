@@ -1,8 +1,9 @@
-import { boats } from "@/data/boats";
+import { boats, fleetPromoCard } from "@/data/boats";
 import { fleetEngineNote } from "@/data/content";
 import { SectionHeading } from "@/components/SectionHeading";
 import { RevealGroup } from "@/components/RevealGroup";
 import { BoatCard } from "@/components/BoatCard";
+import { FleetPromoCardView } from "@/components/FleetPromoCard";
 
 export function Fleet() {
   return (
@@ -10,16 +11,23 @@ export function Fleet() {
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
         <SectionHeading
           eyebrow="Катера"
-          title="Выберите свой катер на свой вкус"
-          subtitle="У нас реальные катера из большого парка — выберите свой для прогулки по Неве, каналам и Финскому заливу."
+          title="Выберите катер на свой вкус"
+          subtitle="У нас большой парк реальных катеров — выберите свой для прогулки по Неве, каналам и Финскому заливу."
         />
 
         <p className="mt-4 text-sm text-ink-soft">{fleetEngineNote}</p>
+        <p className="mt-2 text-sm text-ink-soft">
+          Подробности по конкретной модели можно уточнить у менеджера.
+        </p>
 
         <RevealGroup className="mt-12 grid gap-8 md:grid-cols-2">
-          {boats.map((boat, index) => (
-            <BoatCard key={boat.slug} boat={boat} priority={index < 2} />
+          {boats.map((boat) => (
+            <BoatCard key={boat.slug} boat={boat} />
           ))}
+          <FleetPromoCardView
+            title={fleetPromoCard.title}
+            description={fleetPromoCard.description}
+          />
         </RevealGroup>
       </div>
     </section>

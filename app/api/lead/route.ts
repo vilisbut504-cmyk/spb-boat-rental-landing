@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prepaymentNote } from "@/data/content";
+import { bookableBoatNames } from "@/data/boats";
 
 export type LeadPayload = {
   name: string;
@@ -35,13 +36,21 @@ export async function POST(request: Request) {
       );
     }
 
+    const boatName = body.boatName?.trim() || "";
+    if (boatName && !bookableBoatNames.includes(boatName)) {
+      return NextResponse.json(
+        { ok: false, error: "Выберите катер из доступного парка" },
+        { status: 400 }
+      );
+    }
+
     const payload = {
       name: body.name.trim(),
       phone: body.phone.trim(),
       date: body.date,
       time: body.time,
       guests: body.guests ?? body.people ?? "",
-      boatName: body.boatName?.trim() || "",
+      boatName,
       routeName: body.routeName?.trim() || body.route?.trim() || "",
       format: body.format,
       comment: body.comment?.trim() || "",
