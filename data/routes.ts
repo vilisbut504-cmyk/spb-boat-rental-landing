@@ -15,12 +15,11 @@ export type RouteItem = {
   mood: string;
   forWho: string;
   /**
-   * Real photo (processed WebP). `null` means the raster image is still
-   * pending and the card renders an approved SVG visual instead.
-   * Drawbridges: replace with /images/routes/drawbridges-night.webp on stage 3.
+   * Real photo (processed WebP). `null` means the raster image is missing
+   * and the card falls back to the approved SVG visual.
    */
   image: RouteImage | null;
-  /** Renders the SVG drawbridge visual while image is null */
+  /** SVG fallback shown only when image is null */
   visual?: "drawbridge";
   /** Marks the navigation-zones map card (object-contain + lightbox) */
   isMap?: boolean;
@@ -110,8 +109,13 @@ export const routes: RouteItem[] = [
     ],
     mood: "Ночной Петербург, огни на воде и романтика белых ночей",
     forWho: "Романтический вечер, особое событие, прогулка с друзьями",
-    // Raster photo pending — will become /images/routes/drawbridges-night.webp
-    image: null,
+    image: {
+      src: "/images/routes/drawbridges-night.webp",
+      alt: "Ночная разводка Троицкого моста над Невой в Санкт-Петербурге",
+      width: 1672,
+      height: 941,
+    },
+    // SVG fallback kept in the component in case the image is ever removed
     visual: "drawbridge",
   },
   {

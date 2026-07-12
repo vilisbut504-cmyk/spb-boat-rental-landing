@@ -31,7 +31,7 @@ const MAP = { width: 2400, quality: 90 };
 /**
  * Route photos — owner-confirmed mapping (file numbers ≠ card order).
  * "Маршрут 3.jpeg" is excluded: zaburdaev.ru watermark.
- * Drawbridges card has no photo yet — rendered as SVG until stage 3.
+ * Drawbridges card uses the generated Trinity Bridge photo (see processDrawbridge).
  */
 const ROUTE_MAP = [
   { source: "Маршрут 1.jpg", out: "forgotten-islands.webp" },
@@ -42,6 +42,10 @@ const ROUTE_MAP = [
 
 const MAP_PDF = "6 маршрут отдельно.pdf";
 const MAP_OUT = "allowed-navigation-zones.webp";
+
+/** Generated Trinity Bridge night photo (incoming file name has a typo). */
+const DRAWBRIDGE = { width: 1920, quality: 86 };
+const DRAWBRIDGE_OUT = "drawbridges-night.webp";
 
 /**
  * Owner-final mapping. Only NEW incoming files.
@@ -307,7 +311,40 @@ async function processMapPdf(report, tempDir) {
   };
 }
 
+async function processDrawbridge(report) {
+  console.log("\n🌉 Drawbridges night photo");
+  await ensureDir(ROUTES_DIR);
+
+  const entries = await fs.readdir(INCOMING);
+  // Tolerant match: incoming file is "Троийцкий мост.png" (typo in name);
+  // macOS stores names in NFD, so normalize before matching.
+  const hit = entries.find((n) =>
+    /тро.*мост\.png$/i.test(n.normalize("NFC"))
+  );
+  if (!hit) {
+    console.error("   ✗ Trinity Bridge PNG not found");
+    report.errors.push({ file: "Троицкий мост.png", error: "missing" });
+    return;
+  }
+
+  const outPath = path.join(ROUTES_DIR, DRAWBRIDGE_OUT);
+  await writeWebp(path.join(INCOMING, hit), outPath, DRAWBRIDGE);
+  const meta = await sharp(outPath).metadata();
+  console.log(`   ✓ ${hit} → routes/${DRAWBRIDGE_OUT} (${meta.width}x${meta.height})`);
+  report.routes.push({
+    source: hit,
+    output: `/images/routes/${DRAWBRIDGE_OUT}`,
+    width: meta.width,
+    height: meta.height,
+  });
+}
+
 async function main() {
+  // --only=drawbridge: process just the bridge photo without re-encoding galleries
+  const only = process.argv
+    .find((a) => a.startsWith("--only="))
+    ?.split("=")[1];
+
   console.log("🚤 Finalize seven-boat fleet optimizer\n");
   console.log(`Incoming: ${INCOMING}`);
   if (!fsSync.existsSync(INCOMING)) {
@@ -328,13 +365,20 @@ async function main() {
       "Old project originals not used",
       "Tiffany 5 skipped as duplicate of Tiffany 3",
       "Маршрут 3.jpeg excluded — zaburdaev.ru watermark",
-      "Drawbridges route card uses SVG visual until a real photo arrives",
+      "Drawbridges card uses generated Trinity Bridge photo (drawbridges-night.webp)",
     ],
   };
 
   try {
+    if (only === "drawbridge") {
+      await processDrawbridge(report);
+      console.log("\n(only=drawbridge: hero, boats, map skipped)");
+      return;
+    }
+
     await processHero(report);
     await processRoutes(report);
+    await processDrawbridge(report);
     await processMapPdf(report, tempDir);
 
     for (const boat of BOAT_MAP) {

@@ -23,8 +23,15 @@ export type LeadPayload = {
 const SUCCESS_MESSAGE =
   "Заявка принята. Менеджер свяжется с вами, подтвердит катер, маршрут и свободное время, а также подскажет способ внесения предоплаты 1 000 ₽ в счёт прогулки.";
 
+/**
+ * Without LEADS_WEBHOOK_URL the lead is not delivered anywhere, so the
+ * success text must not promise a manager callback.
+ */
+const TEST_MODE_MESSAGE =
+  "Заявка сохранена в тестовом режиме. Приём заявок ещё настраивается — пожалуйста, свяжитесь с нами напрямую, чтобы подтвердить бронь.";
+
 const TEST_MODE_NOTE =
-  "Сейчас заявка сохранена в тестовом режиме. Подключите LEADS_WEBHOOK_URL для отправки в CRM.";
+  "Технически: заявка не доставлена менеджеру. Подключите LEADS_WEBHOOK_URL для реальной отправки.";
 
 export async function POST(request: Request) {
   try {
@@ -98,7 +105,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       testMode: true,
-      message: SUCCESS_MESSAGE,
+      message: TEST_MODE_MESSAGE,
       testModeNote: TEST_MODE_NOTE,
     });
   } catch (err) {

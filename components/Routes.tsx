@@ -7,7 +7,7 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { RevealGroup } from "@/components/RevealGroup";
 import { useBooking } from "@/components/BookingProvider";
 
-/** Night drawbridge visual (SVG) shown until the real photo arrives. */
+/** Night drawbridge SVG — fallback if the raster photo is ever unavailable. */
 function DrawbridgeVisual() {
   return (
     <svg
@@ -209,9 +209,7 @@ function RouteCard({ route }: { route: RouteItem }) {
           route.isMap ? "bg-white p-2" : "bg-marine-900"
         } aspect-[8/5]`}
       >
-        {route.visual === "drawbridge" ? (
-          <DrawbridgeVisual />
-        ) : route.image ? (
+        {route.image ? (
           <Image
             src={route.image.src}
             alt={route.image.alt}
@@ -223,6 +221,8 @@ function RouteCard({ route }: { route: RouteItem }) {
                 : "object-cover transition-transform duration-700 group-hover:scale-[1.04]"
             }
           />
+        ) : route.visual === "drawbridge" ? (
+          <DrawbridgeVisual />
         ) : null}
       </div>
 

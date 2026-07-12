@@ -15,11 +15,17 @@ const manrope = Manrope({
 const title =
   "Питер Катер — аренда катера без капитана и без прав в Санкт-Петербурге";
 const description =
-  "Самостоятельные прогулки на катере по Финскому заливу, Неве, рекам и каналам Санкт-Петербурга. Управляйте катером сами без прав ГИМС — легально, после инструктажа.";
+  "Самостоятельные прогулки по Неве, островам и Финскому заливу. Семь катеров, бесплатный инструктаж, управление без прав ГИМС и бронь 1 000 ₽ в счёт прогулки.";
+
+const siteUrl = "https://spb-boat-rental-landing.vercel.app";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title,
   description,
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: brandAssets.favicon,
     apple: brandAssets.favicon,
@@ -35,8 +41,24 @@ export const metadata: Metadata = {
   openGraph: {
     title,
     description,
+    url: siteUrl,
+    siteName: "Питер Катер",
     locale: "ru_RU",
     type: "website",
+    images: [
+      {
+        url: "/images/hero/hero-fleet-lakhta.webp",
+        width: 1672,
+        height: 941,
+        alt: "Четыре катера без капитана на Финском заливе у Лахта Центра",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: ["/images/hero/hero-fleet-lakhta.webp"],
   },
 };
 
