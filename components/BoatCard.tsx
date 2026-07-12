@@ -70,7 +70,7 @@ export function BoatCard({ boat }: Props) {
           <div className="flex gap-2 overflow-x-auto border-t border-marine-100 bg-milk p-3 [-webkit-overflow-scrolling:touch]">
             {boat.thumbnails.map((thumb, i) => (
               <button
-                key={thumb}
+                key={`${boat.slug}-thumb-${i}`}
                 type="button"
                 onClick={() => setActiveIndex(i)}
                 className={`relative h-[72px] w-[100px] flex-none overflow-hidden rounded-lg border-2 transition-colors sm:h-[100px] sm:w-[140px] ${

@@ -1,185 +1,251 @@
 {
   "boats": [
     {
-      "source": "красный See sex.jpg",
-      "slug": "krasnyy-kater",
-      "main": "/images/boats-webp/krasnyy-kater/01.webp",
-      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/01.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "красный See sex2.jpg",
-      "slug": "krasnyy-kater",
-      "main": "/images/boats-webp/krasnyy-kater/02.webp",
-      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/02.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "красный See sex3.JPG",
-      "slug": "krasnyy-kater",
-      "main": "/images/boats-webp/krasnyy-kater/03.webp",
-      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/03.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "красный See sex4.JPG",
-      "slug": "krasnyy-kater",
-      "main": "/images/boats-webp/krasnyy-kater/04.webp",
-      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/04.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "See sex 2.JPG",
-      "slug": "krasnyy-kater",
-      "main": "/images/boats-webp/krasnyy-kater/05.webp",
-      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/05.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "See sex 5.JPG",
-      "slug": "krasnyy-kater",
-      "main": "/images/boats-webp/krasnyy-kater/06.webp",
-      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/06.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "Белая акула.jpeg",
-      "slug": "belyy-kater",
-      "main": "/images/boats-webp/belyy-kater/01.webp",
-      "thumb": "/images/boats-webp-thumbs/belyy-kater/01.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "Белая акула 2.jpeg",
-      "slug": "belyy-kater",
-      "main": "/images/boats-webp/belyy-kater/02.webp",
-      "thumb": "/images/boats-webp-thumbs/belyy-kater/02.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "Белая акула 3.jpeg",
-      "slug": "belyy-kater",
-      "main": "/images/boats-webp/belyy-kater/03.webp",
-      "thumb": "/images/boats-webp-thumbs/belyy-kater/03.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "Белая акула 4.jpeg",
-      "slug": "belyy-kater",
-      "main": "/images/boats-webp/belyy-kater/04.webp",
-      "thumb": "/images/boats-webp-thumbs/belyy-kater/04.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "Белая акула 5.JPG",
-      "slug": "belyy-kater",
-      "main": "/images/boats-webp/belyy-kater/05.webp",
-      "thumb": "/images/boats-webp-thumbs/belyy-kater/05.webp",
-      "heicVia": "sharp"
-    },
-    {
-      "source": "Yellow space.HEIC",
-      "slug": "zheltyy-kater",
-      "main": "/images/boats-webp/zheltyy-kater/01.webp",
-      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/01.webp",
-      "heicVia": "sips→jpeg→sharp"
-    },
-    {
-      "source": "Yellow space 2.HEIC",
-      "slug": "zheltyy-kater",
-      "main": "/images/boats-webp/zheltyy-kater/02.webp",
-      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/02.webp",
-      "heicVia": "sips→jpeg→sharp"
-    },
-    {
-      "source": "Yellow space 3.HEIC",
-      "slug": "zheltyy-kater",
-      "main": "/images/boats-webp/zheltyy-kater/03.webp",
-      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/03.webp",
-      "heicVia": "sips→jpeg→sharp"
-    },
-    {
-      "source": "Yellow space 4.HEIC",
-      "slug": "zheltyy-kater",
-      "main": "/images/boats-webp/zheltyy-kater/04.webp",
-      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/04.webp",
-      "heicVia": "sips→jpeg→sharp"
-    },
-    {
-      "source": "Yellow space 5.HEIC",
-      "slug": "zheltyy-kater",
-      "main": "/images/boats-webp/zheltyy-kater/05.webp",
-      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/05.webp",
-      "heicVia": "sips→jpeg→sharp"
-    },
-    {
-      "source": "__EXISTING__/Желтый катер, фото 1.jpeg",
-      "slug": "zheltyy-kater",
-      "main": "/images/boats-webp/zheltyy-kater/06.webp",
-      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/06.webp",
-      "heicVia": "sharp"
-    },
-    {
       "source": "Tiffany.JPG",
       "slug": "tiffany",
-      "main": "/images/boats-webp/tiffany/01.webp",
-      "thumb": "/images/boats-webp-thumbs/tiffany/01.webp",
+      "prefix": "tiffany",
+      "main": "/images/boats-webp/tiffany/tiffany-01.webp",
+      "thumb": "/images/boats-webp-thumbs/tiffany/tiffany-01.webp",
       "heicVia": "sharp"
     },
     {
       "source": "Tiffany 2.JPG",
       "slug": "tiffany",
-      "main": "/images/boats-webp/tiffany/02.webp",
-      "thumb": "/images/boats-webp-thumbs/tiffany/02.webp",
+      "prefix": "tiffany",
+      "main": "/images/boats-webp/tiffany/tiffany-02.webp",
+      "thumb": "/images/boats-webp-thumbs/tiffany/tiffany-02.webp",
       "heicVia": "sharp"
     },
     {
       "source": "Tiffany 3.JPG",
       "slug": "tiffany",
-      "main": "/images/boats-webp/tiffany/03.webp",
-      "thumb": "/images/boats-webp-thumbs/tiffany/03.webp",
+      "prefix": "tiffany",
+      "main": "/images/boats-webp/tiffany/tiffany-03.webp",
+      "thumb": "/images/boats-webp-thumbs/tiffany/tiffany-03.webp",
       "heicVia": "sharp"
     },
     {
       "source": "Tiffany 4.JPG",
       "slug": "tiffany",
-      "main": "/images/boats-webp/tiffany/04.webp",
-      "thumb": "/images/boats-webp-thumbs/tiffany/04.webp",
+      "prefix": "tiffany",
+      "main": "/images/boats-webp/tiffany/tiffany-04.webp",
+      "thumb": "/images/boats-webp-thumbs/tiffany/tiffany-04.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "красный See sex.jpg",
+      "slug": "krasnyy-kater",
+      "prefix": "sexy-sea-red",
+      "main": "/images/boats-webp/krasnyy-kater/sexy-sea-red-01.webp",
+      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/sexy-sea-red-01.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "красный See sex2.jpg",
+      "slug": "krasnyy-kater",
+      "prefix": "sexy-sea-red",
+      "main": "/images/boats-webp/krasnyy-kater/sexy-sea-red-02.webp",
+      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/sexy-sea-red-02.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "красный See sex3.JPG",
+      "slug": "krasnyy-kater",
+      "prefix": "sexy-sea-red",
+      "main": "/images/boats-webp/krasnyy-kater/sexy-sea-red-03.webp",
+      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/sexy-sea-red-03.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "красный See sex4.JPG",
+      "slug": "krasnyy-kater",
+      "prefix": "sexy-sea-red",
+      "main": "/images/boats-webp/krasnyy-kater/sexy-sea-red-04.webp",
+      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/sexy-sea-red-04.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "See sex 2.JPG",
+      "slug": "krasnyy-kater",
+      "prefix": "sexy-sea-red",
+      "main": "/images/boats-webp/krasnyy-kater/sexy-sea-red-05.webp",
+      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/sexy-sea-red-05.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "See sex 5.JPG",
+      "slug": "krasnyy-kater",
+      "prefix": "sexy-sea-red",
+      "main": "/images/boats-webp/krasnyy-kater/sexy-sea-red-06.webp",
+      "thumb": "/images/boats-webp-thumbs/krasnyy-kater/sexy-sea-red-06.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "Красная акула.jpeg",
+      "slug": "red-shark",
+      "prefix": "red-shark",
+      "main": "/images/boats-webp/red-shark/red-shark-01.webp",
+      "thumb": "/images/boats-webp-thumbs/red-shark/red-shark-01.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "красная-Акула 2.jpeg",
+      "slug": "red-shark",
+      "prefix": "red-shark",
+      "main": "/images/boats-webp/red-shark/red-shark-02.webp",
+      "thumb": "/images/boats-webp-thumbs/red-shark/red-shark-02.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "красная-Акула 3.jpeg",
+      "slug": "red-shark",
+      "prefix": "red-shark",
+      "main": "/images/boats-webp/red-shark/red-shark-03.webp",
+      "thumb": "/images/boats-webp-thumbs/red-shark/red-shark-03.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "красная-Акула 4.jpeg",
+      "slug": "red-shark",
+      "prefix": "red-shark",
+      "main": "/images/boats-webp/red-shark/red-shark-04.webp",
+      "thumb": "/images/boats-webp-thumbs/red-shark/red-shark-04.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "красная-Акула 5.jpeg",
+      "slug": "red-shark",
+      "prefix": "red-shark",
+      "main": "/images/boats-webp/red-shark/red-shark-05.webp",
+      "thumb": "/images/boats-webp-thumbs/red-shark/red-shark-05.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "красная-Акула 6.jpeg",
+      "slug": "red-shark",
+      "prefix": "red-shark",
+      "main": "/images/boats-webp/red-shark/red-shark-06.webp",
+      "thumb": "/images/boats-webp-thumbs/red-shark/red-shark-06.webp",
       "heicVia": "sharp"
     },
     {
       "source": "Тотал блэк.JPG",
       "slug": "total-black",
-      "main": "/images/boats-webp/total-black/01.webp",
-      "thumb": "/images/boats-webp-thumbs/total-black/01.webp",
+      "prefix": "total-black",
+      "main": "/images/boats-webp/total-black/total-black-01.webp",
+      "thumb": "/images/boats-webp-thumbs/total-black/total-black-01.webp",
       "heicVia": "sharp"
     },
     {
       "source": "Тотал блэк 2.JPG",
       "slug": "total-black",
-      "main": "/images/boats-webp/total-black/02.webp",
-      "thumb": "/images/boats-webp-thumbs/total-black/02.webp",
+      "prefix": "total-black",
+      "main": "/images/boats-webp/total-black/total-black-02.webp",
+      "thumb": "/images/boats-webp-thumbs/total-black/total-black-02.webp",
       "heicVia": "sharp"
     },
     {
       "source": "Тотал блэк 3.JPG",
       "slug": "total-black",
-      "main": "/images/boats-webp/total-black/03.webp",
-      "thumb": "/images/boats-webp-thumbs/total-black/03.webp",
+      "prefix": "total-black",
+      "main": "/images/boats-webp/total-black/total-black-03.webp",
+      "thumb": "/images/boats-webp-thumbs/total-black/total-black-03.webp",
       "heicVia": "sharp"
     },
     {
       "source": "Тотал блэк 4.JPG",
       "slug": "total-black",
-      "main": "/images/boats-webp/total-black/04.webp",
-      "thumb": "/images/boats-webp-thumbs/total-black/04.webp",
+      "prefix": "total-black",
+      "main": "/images/boats-webp/total-black/total-black-04.webp",
+      "thumb": "/images/boats-webp-thumbs/total-black/total-black-04.webp",
       "heicVia": "sharp"
     },
     {
       "source": "Тотал блэк 5.JPG",
       "slug": "total-black",
-      "main": "/images/boats-webp/total-black/05.webp",
-      "thumb": "/images/boats-webp-thumbs/total-black/05.webp",
+      "prefix": "total-black",
+      "main": "/images/boats-webp/total-black/total-black-05.webp",
+      "thumb": "/images/boats-webp-thumbs/total-black/total-black-05.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "Yellow space.HEIC",
+      "slug": "zheltyy-kater",
+      "prefix": "yellow-space",
+      "main": "/images/boats-webp/zheltyy-kater/yellow-space-01.webp",
+      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/yellow-space-01.webp",
+      "heicVia": "sips→jpeg→sharp"
+    },
+    {
+      "source": "Yellow space 2.HEIC",
+      "slug": "zheltyy-kater",
+      "prefix": "yellow-space",
+      "main": "/images/boats-webp/zheltyy-kater/yellow-space-02.webp",
+      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/yellow-space-02.webp",
+      "heicVia": "sips→jpeg→sharp"
+    },
+    {
+      "source": "Yellow space 3.HEIC",
+      "slug": "zheltyy-kater",
+      "prefix": "yellow-space",
+      "main": "/images/boats-webp/zheltyy-kater/yellow-space-03.webp",
+      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/yellow-space-03.webp",
+      "heicVia": "sips→jpeg→sharp"
+    },
+    {
+      "source": "Yellow space 4.HEIC",
+      "slug": "zheltyy-kater",
+      "prefix": "yellow-space",
+      "main": "/images/boats-webp/zheltyy-kater/yellow-space-04.webp",
+      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/yellow-space-04.webp",
+      "heicVia": "sips→jpeg→sharp"
+    },
+    {
+      "source": "Yellow space 5.HEIC",
+      "slug": "zheltyy-kater",
+      "prefix": "yellow-space",
+      "main": "/images/boats-webp/zheltyy-kater/yellow-space-05.webp",
+      "thumb": "/images/boats-webp-thumbs/zheltyy-kater/yellow-space-05.webp",
+      "heicVia": "sips→jpeg→sharp"
+    },
+    {
+      "source": "Белая акула.jpeg",
+      "slug": "belyy-kater",
+      "prefix": "white-shark",
+      "main": "/images/boats-webp/belyy-kater/white-shark-01.webp",
+      "thumb": "/images/boats-webp-thumbs/belyy-kater/white-shark-01.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "Белая акула 2.jpeg",
+      "slug": "belyy-kater",
+      "prefix": "white-shark",
+      "main": "/images/boats-webp/belyy-kater/white-shark-02.webp",
+      "thumb": "/images/boats-webp-thumbs/belyy-kater/white-shark-02.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "Белая акула 3.jpeg",
+      "slug": "belyy-kater",
+      "prefix": "white-shark",
+      "main": "/images/boats-webp/belyy-kater/white-shark-03.webp",
+      "thumb": "/images/boats-webp-thumbs/belyy-kater/white-shark-03.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "Белая акула 4.jpeg",
+      "slug": "belyy-kater",
+      "prefix": "white-shark",
+      "main": "/images/boats-webp/belyy-kater/white-shark-04.webp",
+      "thumb": "/images/boats-webp-thumbs/belyy-kater/white-shark-04.webp",
+      "heicVia": "sharp"
+    },
+    {
+      "source": "Белая акула 5.JPG",
+      "slug": "belyy-kater",
+      "prefix": "white-shark",
+      "main": "/images/boats-webp/belyy-kater/white-shark-05.webp",
+      "thumb": "/images/boats-webp-thumbs/belyy-kater/white-shark-05.webp",
       "heicVia": "sharp"
     }
   ],
@@ -190,10 +256,18 @@
     "width": 1672,
     "height": 941
   },
-  "unassigned": [
-    "красная-Акула 2.jpeg … 6.jpeg + Красная акула.jpeg — all-red, overlaps Sexy Sea Red visually; not assigned to Red & Black",
-    "photo_2026-07-12 16.42.14.jpeg — website screenshot, not a boat photo",
-    "Маршрут 1–5 + PDF — deferred to stage 2",
-    "Red & Black — no confident unique photos in this drop"
+  "counts": {
+    "tiffany": 4,
+    "krasnyy-kater": 6,
+    "red-shark": 6,
+    "total-black": 5,
+    "zheltyy-kater": 5,
+    "belyy-kater": 5
+  },
+  "notes": [
+    "Blue Wave removed from active fleet — not processed",
+    "Red & Black shares Total Black WebP URLs in data/boats.ts (no physical copies)",
+    "Old project originals not used",
+    "Tiffany 5 skipped as duplicate of Tiffany 3"
   ]
 }

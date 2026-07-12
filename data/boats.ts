@@ -28,14 +28,21 @@ export type FleetPromoCard = {
   description: string;
 };
 
-function gallery(slug: string, count: number, altBase: string) {
+/** Gallery from named WebP files: /images/boats-webp/{slug}/{prefix}-01.webp */
+function gallery(
+  slug: string,
+  prefix: string,
+  count: number,
+  altBase: string
+) {
   const images: string[] = [];
   const thumbnails: string[] = [];
   const imageAlts: string[] = [];
   for (let i = 1; i <= count; i++) {
     const num = String(i).padStart(2, "0");
-    images.push(`/images/boats-webp/${slug}/${num}.webp`);
-    thumbnails.push(`/images/boats-webp-thumbs/${slug}/${num}.webp`);
+    const file = `${prefix}-${num}.webp`;
+    images.push(`/images/boats-webp/${slug}/${file}`);
+    thumbnails.push(`/images/boats-webp-thumbs/${slug}/${file}`);
     imageAlts.push(`${altBase} — фото ${i}`);
   }
   return { images, thumbnails, imageAlts };
@@ -61,28 +68,52 @@ const sharedSpecs = {
   bookable: true as const,
 };
 
-const blueWave = gallery("goluboy-kater", 3, "Blue Wave");
-const sexySeaRed = gallery("krasnyy-kater", 6, "Sexy Sea Red");
-const whiteShark = gallery("belyy-kater", 5, "White Shark");
-const yellowSpace = gallery("zheltyy-kater", 6, "Yellow Space");
-const tiffany = gallery("tiffany", 4, "Tiffany");
-const totalBlack = gallery("total-black", 5, "Total Black");
+const tiffanyGallery = gallery("tiffany", "tiffany", 4, "Tiffany");
+const sexySeaRedGallery = gallery(
+  "krasnyy-kater",
+  "sexy-sea-red",
+  6,
+  "Sexy Sea Red"
+);
+const redSharkGallery = gallery("red-shark", "red-shark", 6, "Red Shark");
+const totalBlackGallery = gallery(
+  "total-black",
+  "total-black",
+  5,
+  "Total Black"
+);
+const yellowSpaceGallery = gallery(
+  "zheltyy-kater",
+  "yellow-space",
+  5,
+  "Yellow Space"
+);
+const whiteSharkGallery = gallery(
+  "belyy-kater",
+  "white-shark",
+  5,
+  "White Shark"
+);
 
-/** Seven bookable boats — single source of truth for Fleet, form and API boatName */
+/**
+ * Seven bookable boats — single source of truth for Fleet, form and API.
+ * Order matches owner-confirmed fleet list.
+ * Red & Black reuses Total Black WebP URLs (no physical duplicates).
+ */
 export const boats: Boat[] = [
   {
-    slug: "goluboy-kater",
-    name: "Blue Wave",
-    shortName: "Голубой катер",
+    slug: "tiffany",
+    name: "Tiffany",
+    shortName: "Синий катер",
     ...sharedSpecs,
     capacity: "до 4 человек",
     description:
-      "Светло-голубой прогулочный катер для спокойного маршрута, свидания или первой самостоятельной прогулки после инструктажа.",
+      "Синий катер Tiffany для стильной прогулки, свидания и ярких кадров на воде.",
     comfort: sharedComfort,
-    bestFor: ["свидание", "прогулка по Неве", "первая самостоятельная прогулка"],
-    images: blueWave.images,
-    thumbnails: blueWave.thumbnails,
-    imageAlts: blueWave.imageAlts,
+    bestFor: ["свидание", "фотосессия", "прогулка по заливу"],
+    images: tiffanyGallery.images,
+    thumbnails: tiffanyGallery.thumbnails,
+    imageAlts: tiffanyGallery.imageAlts,
   },
   {
     slug: "krasnyy-kater",
@@ -95,23 +126,54 @@ export const boats: Boat[] = [
     badge: "До 5 человек",
     comfort: sharedComfort,
     bestFor: ["друзья", "день рождения", "фотосессия", "прогулка по Неве"],
-    images: sexySeaRed.images,
-    thumbnails: sexySeaRed.thumbnails,
-    imageAlts: sexySeaRed.imageAlts,
+    images: sexySeaRedGallery.images,
+    thumbnails: sexySeaRedGallery.thumbnails,
+    imageAlts: sexySeaRedGallery.imageAlts,
   },
   {
-    slug: "belyy-kater",
-    name: "White Shark",
-    shortName: "Белая акула",
+    slug: "red-shark",
+    name: "Red Shark",
+    shortName: "Красная акула",
     ...sharedSpecs,
     capacity: "до 4 человек",
     description:
-      "Бело-синий катер для аккуратной городской прогулки по Неве, каналам и маршрутам Петербурга.",
+      "Красная акула — самостоятельный красный катер для уверенной прогулки по Неве и каналам.",
     comfort: sharedComfort,
-    bestFor: ["семья", "прогулка по Неве", "каналы Петербурга", "фотосессия"],
-    images: whiteShark.images,
-    thumbnails: whiteShark.thumbnails,
-    imageAlts: whiteShark.imageAlts,
+    bestFor: ["друзья", "прогулка по Неве", "фотосессия"],
+    images: redSharkGallery.images,
+    thumbnails: redSharkGallery.thumbnails,
+    imageAlts: redSharkGallery.imageAlts,
+  },
+  {
+    slug: "total-black",
+    name: "Total Black",
+    shortName: "Чёрный катер",
+    ...sharedSpecs,
+    capacity: "до 4 человек",
+    description:
+      "Полностью чёрный катер для премиальной вечерней прогулки и уверенного силуэта на воде.",
+    comfort: sharedComfort,
+    bestFor: ["романтика", "вечер на воде", "фотосессия"],
+    images: totalBlackGallery.images,
+    thumbnails: totalBlackGallery.thumbnails,
+    imageAlts: totalBlackGallery.imageAlts,
+  },
+  {
+    slug: "red-black",
+    name: "Red & Black",
+    shortName: "Красно-чёрный катер",
+    ...sharedSpecs,
+    capacity: "до 4 человек",
+    description:
+      "Красно-чёрный катер для яркой самостоятельной прогулки. Отдельная модель парка с собственной бронью.",
+    comfort: sharedComfort,
+    bestFor: ["друзья", "день рождения", "прогулка по Неве"],
+    // Same physical WebP set as Total Black (owner-approved)
+    images: totalBlackGallery.images,
+    thumbnails: totalBlackGallery.thumbnails,
+    imageAlts: totalBlackGallery.images.map(
+      (_, i) => `Red & Black — фото ${i + 1}`
+    ),
   },
   {
     slug: "zheltyy-kater",
@@ -124,56 +186,27 @@ export const boats: Boat[] = [
     badge: "До 5 человек",
     comfort: sharedComfort,
     bestFor: ["друзья", "фотосессия", "летняя прогулка", "закат на воде"],
-    images: yellowSpace.images,
-    thumbnails: yellowSpace.thumbnails,
-    imageAlts: yellowSpace.imageAlts,
+    images: yellowSpaceGallery.images,
+    thumbnails: yellowSpaceGallery.thumbnails,
+    imageAlts: yellowSpaceGallery.imageAlts,
   },
   {
-    slug: "tiffany",
-    name: "Tiffany",
-    shortName: "Бирюзовый катер",
+    slug: "belyy-kater",
+    name: "White Shark",
+    shortName: "Белая акула",
     ...sharedSpecs,
     capacity: "до 4 человек",
     description:
-      "Бирюзовый катер для стильной прогулки, свидания и ярких кадров на воде.",
+      "Белая акула — светлый катер для аккуратной городской прогулки по Неве, каналам и маршрутам Петербурга.",
     comfort: sharedComfort,
-    bestFor: ["свидание", "фотосессия", "прогулка по заливу"],
-    images: tiffany.images,
-    thumbnails: tiffany.thumbnails,
-    imageAlts: tiffany.imageAlts,
-  },
-  {
-    slug: "total-black",
-    name: "Total Black",
-    shortName: "Чёрный катер",
-    ...sharedSpecs,
-    capacity: "до 4 человек",
-    description:
-      "Полностью чёрный катер для премиальной вечерней прогулки и уверенного силуэта на воде.",
-    comfort: sharedComfort,
-    bestFor: ["романтика", "вечер на воде", "фотосессия"],
-    images: totalBlack.images,
-    thumbnails: totalBlack.thumbnails,
-    imageAlts: totalBlack.imageAlts,
-  },
-  {
-    slug: "red-black",
-    name: "Red & Black",
-    shortName: "Красно-чёрный катер",
-    ...sharedSpecs,
-    capacity: "до 4 человек",
-    description:
-      "Красно-чёрный катер для яркой самостоятельной прогулки. Актуальные фотографии модели уточнит менеджер при бронировании.",
-    comfort: sharedComfort,
-    bestFor: ["друзья", "день рождения", "прогулка по Неве"],
-    // No confident unique photos in incoming drop — do not reuse other boats' images
-    images: [],
-    thumbnails: [],
-    imageAlts: [],
+    bestFor: ["семья", "прогулка по Неве", "каналы Петербурга", "фотосессия"],
+    images: whiteSharkGallery.images,
+    thumbnails: whiteSharkGallery.thumbnails,
+    imageAlts: whiteSharkGallery.imageAlts,
   },
 ];
 
-/** Names accepted by booking form / lead API */
+/** Names accepted by booking form / lead API — exactly seven boats */
 export const bookableBoatNames = boats
   .filter((b) => b.bookable)
   .map((b) => b.name);
@@ -185,6 +218,3 @@ export const fleetPromoCard: FleetPromoCard = {
   description:
     "Мы регулярно обновляем парк и добавляем новые модели и цвета.",
 };
-
-/** Legacy unmatched hero frame — kept for reference, hero now uses dedicated asset */
-export const unmatchedImages = ["/images/boats-webp/general/01.webp"];

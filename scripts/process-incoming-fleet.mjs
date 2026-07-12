@@ -1,7 +1,10 @@
 /**
  * Curated processing of incoming-assets:2026-07-12
- * Extends the project WebP pipeline (same output dirs / sizes as optimize-images-to-webp.mjs).
- * HEIC: macOS `sips` → temp JPEG → sharp WebP (sharp cannot read these HEIC files).
+ * Final seven-boat fleet mapping (owner-confirmed).
+ * HEIC: macOS `sips` → temp JPEG → sharp WebP.
+ *
+ * Output naming: {prefix}-01.webp inside boats-webp/{slug}/
+ * Red & Black reuses Total Black WebP URLs in data (no physical copies).
  */
 import { execFileSync } from "node:child_process";
 import fs from "node:fs/promises";
@@ -23,50 +26,79 @@ const THUMB = { width: 480, quality: 80 };
 const HERO = { width: 1920, quality: 84 };
 
 /**
- * Curated mapping: only high-confidence boat assignments.
- * Red & Black has no confident photos in this drop.
- * Route / PDF / screenshot files are intentionally omitted.
+ * Owner-final mapping. Only NEW incoming files.
+ * No old project originals (Blue Wave / Желтый катер / etc.).
  */
-const BOAT_MAP = {
-  "krasnyy-kater": [
-    "красный See sex.jpg",
-    "красный See sex2.jpg",
-    "красный See sex3.JPG",
-    "красный See sex4.JPG",
-    "See sex 2.JPG",
-    "See sex 5.JPG",
-  ],
-  "belyy-kater": [
-    "Белая акула.jpeg",
-    "Белая акула 2.jpeg",
-    "Белая акула 3.jpeg",
-    "Белая акула 4.jpeg",
-    "Белая акула 5.JPG",
-  ],
-  "zheltyy-kater": [
-    "Yellow space.HEIC",
-    "Yellow space 2.HEIC",
-    "Yellow space 3.HEIC",
-    "Yellow space 4.HEIC",
-    "Yellow space 5.HEIC",
-    // existing local original (kept as extra gallery frame)
-    "__EXISTING__/Желтый катер, фото 1.jpeg",
-  ],
-  tiffany: [
-    "Tiffany.JPG",
-    "Tiffany 2.JPG",
-    "Tiffany 3.JPG",
-    "Tiffany 4.JPG",
-    // Tiffany 5.JPG is an exact duplicate of Tiffany 3.JPG — skipped
-  ],
-  "total-black": [
-    "Тотал блэк.JPG",
-    "Тотал блэк 2.JPG",
-    "Тотал блэк 3.JPG",
-    "Тотал блэк 4.JPG",
-    "Тотал блэк 5.JPG",
-  ],
-};
+const BOAT_MAP = [
+  {
+    slug: "tiffany",
+    prefix: "tiffany",
+    files: [
+      "Tiffany.JPG",
+      "Tiffany 2.JPG",
+      "Tiffany 3.JPG",
+      "Tiffany 4.JPG",
+      // Tiffany 5.JPG is exact duplicate of Tiffany 3 — skipped
+    ],
+  },
+  {
+    slug: "krasnyy-kater",
+    prefix: "sexy-sea-red",
+    files: [
+      "красный See sex.jpg",
+      "красный See sex2.jpg",
+      "красный See sex3.JPG",
+      "красный See sex4.JPG",
+      "See sex 2.JPG",
+      "See sex 5.JPG",
+    ],
+  },
+  {
+    slug: "red-shark",
+    prefix: "red-shark",
+    files: [
+      "Красная акула.jpeg",
+      "красная-Акула 2.jpeg",
+      "красная-Акула 3.jpeg",
+      "красная-Акула 4.jpeg",
+      "красная-Акула 5.jpeg",
+      "красная-Акула 6.jpeg",
+    ],
+  },
+  {
+    slug: "total-black",
+    prefix: "total-black",
+    files: [
+      "Тотал блэк.JPG",
+      "Тотал блэк 2.JPG",
+      "Тотал блэк 3.JPG",
+      "Тотал блэк 4.JPG",
+      "Тотал блэк 5.JPG",
+    ],
+  },
+  {
+    slug: "zheltyy-kater",
+    prefix: "yellow-space",
+    files: [
+      "Yellow space.HEIC",
+      "Yellow space 2.HEIC",
+      "Yellow space 3.HEIC",
+      "Yellow space 4.HEIC",
+      "Yellow space 5.HEIC",
+    ],
+  },
+  {
+    slug: "belyy-kater",
+    prefix: "white-shark",
+    files: [
+      "Белая акула.jpeg",
+      "Белая акула 2.jpeg",
+      "Белая акула 3.jpeg",
+      "Белая акула 4.jpeg",
+      "Белая акула 5.JPG",
+    ],
+  },
+];
 
 async function findHeroSource() {
   const entries = await fs.readdir(INCOMING);
@@ -113,15 +145,13 @@ async function clearSlug(slug) {
   }
 }
 
-async function processBoat(slug, filenames, tempDir, report) {
-  console.log(`\n📁 ${slug} (${filenames.length} file(s))`);
+async function processBoat({ slug, prefix, files }, tempDir, report) {
+  console.log(`\n📁 ${slug} / ${prefix} (${files.length} file(s))`);
   await clearSlug(slug);
 
   let index = 1;
-  for (const name of filenames) {
-    const full = name.startsWith("__EXISTING__/")
-      ? path.join(ROOT, "public/images", name.replace("__EXISTING__/", ""))
-      : path.join(INCOMING, name);
+  for (const name of files) {
+    const full = path.join(INCOMING, name);
     if (!fsSync.existsSync(full)) {
       console.error(`   ✗ missing: ${name}`);
       report.errors.push({ file: name, error: "missing" });
@@ -132,18 +162,20 @@ async function processBoat(slug, filenames, tempDir, report) {
     try {
       readable = await resolveReadable(full, tempDir);
       const num = String(index).padStart(2, "0");
-      const outMain = path.join(OUTPUT_DIR, slug, `${num}.webp`);
-      const outThumb = path.join(THUMB_DIR, slug, `${num}.webp`);
+      const fileName = `${prefix}-${num}.webp`;
+      const outMain = path.join(OUTPUT_DIR, slug, fileName);
+      const outThumb = path.join(THUMB_DIR, slug, fileName);
 
       await writeWebp(readable.path, outMain, MAIN);
       await writeWebp(readable.path, outThumb, THUMB);
 
-      console.log(`   ✓ ${name} → ${slug}/${num}.webp`);
+      console.log(`   ✓ ${name} → ${slug}/${fileName}`);
       report.boats.push({
         source: name,
         slug,
-        main: `/images/boats-webp/${slug}/${num}.webp`,
-        thumb: `/images/boats-webp-thumbs/${slug}/${num}.webp`,
+        prefix,
+        main: `/images/boats-webp/${slug}/${fileName}`,
+        thumb: `/images/boats-webp-thumbs/${slug}/${fileName}`,
         heicVia: isHeic(full) ? "sips→jpeg→sharp" : "sharp",
       });
       index++;
@@ -158,6 +190,8 @@ async function processBoat(slug, filenames, tempDir, report) {
     }
   }
 
+  report.counts = report.counts || {};
+  report.counts[slug] = index - 1;
   return index - 1;
 }
 
@@ -185,36 +219,46 @@ async function processHero(report) {
 }
 
 async function main() {
-  console.log("🚤 Incoming fleet optimizer (curated)\n");
+  console.log("🚤 Finalize seven-boat fleet optimizer\n");
+  console.log(`Incoming: ${INCOMING}`);
   if (!fsSync.existsSync(INCOMING)) {
     throw new Error(`Incoming folder not found: ${INCOMING}`);
   }
 
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "boat-heic-"));
-  const report = { boats: [], errors: [], hero: null, unassigned: [] };
+  const report = {
+    boats: [],
+    errors: [],
+    hero: null,
+    counts: {},
+    notes: [
+      "Blue Wave removed from active fleet — not processed",
+      "Red & Black shares Total Black WebP URLs in data/boats.ts (no physical copies)",
+      "Old project originals not used",
+      "Tiffany 5 skipped as duplicate of Tiffany 3",
+    ],
+  };
 
   try {
     await processHero(report);
 
-    for (const [slug, files] of Object.entries(BOAT_MAP)) {
-      await processBoat(slug, files, tempDir, report);
+    for (const boat of BOAT_MAP) {
+      await processBoat(boat, tempDir, report);
     }
 
-    // Keep Blue Wave existing gallery (goluboy-kater) — no overwrite
-    console.log("\n📁 goluboy-kater — kept existing WebP gallery (no new sources)");
+    console.log(
+      "\n📁 red-black — no physical WebP; reuses total-black URLs in data"
+    );
 
-    report.unassigned = [
-      "красная-Акула 2.jpeg … 6.jpeg + Красная акула.jpeg — all-red, overlaps Sexy Sea Red visually; not assigned to Red & Black",
-      "photo_2026-07-12 16.42.14.jpeg — website screenshot, not a boat photo",
-      "Маршрут 1–5 + PDF — deferred to stage 2",
-      "Red & Black — no confident unique photos in this drop",
-    ];
-
-    const summaryPath = path.join(ROOT, "scripts/last-incoming-optimize-report.json");
+    const summaryPath = path.join(
+      ROOT,
+      "scripts/last-incoming-optimize-report.json"
+    );
     await fs.writeFile(summaryPath, JSON.stringify(report, null, 2));
-    console.log("\n─".repeat(40));
+    console.log("\n" + "─".repeat(50));
     console.log(`Processed boat frames: ${report.boats.length}`);
     console.log(`Errors: ${report.errors.length}`);
+    console.log("Counts:", report.counts);
     console.log(`Report: ${summaryPath}`);
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true });

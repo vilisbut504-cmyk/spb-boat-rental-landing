@@ -12,7 +12,7 @@ export function Fleet() {
         <SectionHeading
           eyebrow="Катера"
           title="Выберите катер на свой вкус"
-          subtitle="У нас большой парк реальных катеров — выберите свой для прогулки по Неве, каналам и Финскому заливу."
+          subtitle="В парке 7 реальных катеров — выберите свой для прогулки по Неве, каналам и Финскому заливу."
         />
 
         <p className="mt-4 text-sm text-ink-soft">{fleetEngineNote}</p>
