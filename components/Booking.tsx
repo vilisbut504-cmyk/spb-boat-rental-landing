@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { useBooking } from "@/components/BookingProvider";
 import { boats } from "@/data/boats";
 import { prepaymentNote } from "@/data/content";
-import { routes } from "@/data/routes";
+import { routeNames } from "@/data/routes";
 
 type Fields = {
   name: string;
@@ -185,7 +185,7 @@ export function Booking() {
               </h3>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-soft">
                 {serverMessage ||
-                  "Заявка принята. Менеджер свяжется с вами, уточнит катер, маршрут, свободное время и подскажет способ внесения предоплаты 1 000 ₽ в счёт прогулки."}
+                  "Заявка принята. Менеджер свяжется с вами, подтвердит катер, маршрут и свободное время, а также подскажет способ внесения предоплаты 1 000 ₽ в счёт прогулки."}
               </p>
               {testModeNote && (
                 <p className="mt-2 max-w-md text-xs text-ink-soft/70">
@@ -284,9 +284,9 @@ export function Booking() {
                     className={fieldClass("route")}
                   >
                     <option value="">Выберите маршрут</option>
-                    {routes.map((r) => (
-                      <option key={r.title} value={r.title}>
-                        {r.title}
+                    {routeNames.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
                       </option>
                     ))}
                   </select>
@@ -333,7 +333,7 @@ export function Booking() {
                   checked={fields.agreeRules}
                   onChange={(v) => update("agreeRules", v)}
                   error={errors.agreeRules}
-                  label="Согласие с условиями аренды"
+                  label="Согласие с правилами аренды"
                 />
               </div>
 

@@ -20,10 +20,28 @@ const INCOMING = path.join(ROOT, "incoming-assets:2026-07-12");
 const OUTPUT_DIR = path.join(ROOT, "public/images/boats-webp");
 const THUMB_DIR = path.join(ROOT, "public/images/boats-webp-thumbs");
 const HERO_DIR = path.join(ROOT, "public/images/hero");
+const ROUTES_DIR = path.join(ROOT, "public/images/routes");
 
 const MAIN = { width: 1600, quality: 86 };
 const THUMB = { width: 480, quality: 80 };
 const HERO = { width: 1920, quality: 84 };
+const ROUTE = { width: 1600, quality: 85 };
+const MAP = { width: 2400, quality: 90 };
+
+/**
+ * Route photos — owner-confirmed mapping (file numbers ≠ card order).
+ * "Маршрут 3.jpeg" is excluded: zaburdaev.ru watermark.
+ * Drawbridges card has no photo yet — rendered as SVG until stage 3.
+ */
+const ROUTE_MAP = [
+  { source: "Маршрут 1.jpg", out: "forgotten-islands.webp" },
+  { source: "Маршрут 5 крейсер.jpg", out: "aurora-cruiser.webp" },
+  { source: "Маршрут 2.jpeg", out: "finnish-gulf-lakhta.webp" },
+  { source: "Маршрут 4.jpeg", out: "sunset-on-water.webp" },
+];
+
+const MAP_PDF = "6 маршрут отдельно.pdf";
+const MAP_OUT = "allowed-navigation-zones.webp";
 
 /**
  * Owner-final mapping. Only NEW incoming files.
@@ -218,6 +236,77 @@ async function processHero(report) {
   };
 }
 
+async function processRoutes(report) {
+  console.log("\n🗺  Routes");
+  await ensureDir(ROUTES_DIR);
+
+  for (const { source, out } of ROUTE_MAP) {
+    const full = path.join(INCOMING, source);
+    if (!fsSync.existsSync(full)) {
+      console.error(`   ✗ missing: ${source}`);
+      report.errors.push({ file: source, error: "missing" });
+      continue;
+    }
+    const outPath = path.join(ROUTES_DIR, out);
+    await sharp(full)
+      .rotate()
+      .resize({ width: ROUTE.width, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: ROUTE.quality, effort: 4 })
+      .toFile(outPath);
+    const meta = await sharp(outPath).metadata();
+    console.log(`   ✓ ${source} → routes/${out} (${meta.width}x${meta.height})`);
+    report.routes.push({
+      source,
+      output: `/images/routes/${out}`,
+      width: meta.width,
+      height: meta.height,
+    });
+  }
+}
+
+async function processMapPdf(report, tempDir) {
+  console.log("\n🗺  Navigation zones map (PDF → WebP)");
+  const pdfPath = path.join(INCOMING, MAP_PDF);
+  if (!fsSync.existsSync(pdfPath)) {
+    console.error(`   ✗ missing: ${MAP_PDF}`);
+    report.errors.push({ file: MAP_PDF, error: "missing" });
+    return;
+  }
+
+  // sharp cannot rasterize PDF; use macOS sips for page 1 extraction
+  const tempPng = path.join(tempDir, "map-page1.png");
+  execFileSync(
+    "sips",
+    [
+      "-s",
+      "format",
+      "png",
+      "--resampleWidth",
+      String(MAP.width),
+      pdfPath,
+      "--out",
+      tempPng,
+    ],
+    { stdio: ["ignore", "pipe", "pipe"] }
+  );
+
+  const outPath = path.join(ROUTES_DIR, MAP_OUT);
+  await sharp(tempPng)
+    .webp({ quality: MAP.quality, effort: 4 })
+    .toFile(outPath);
+  const meta = await sharp(outPath).metadata();
+  console.log(
+    `   ✓ ${MAP_PDF} → routes/${MAP_OUT} (${meta.width}x${meta.height})`
+  );
+  report.map = {
+    source: MAP_PDF,
+    output: `/images/routes/${MAP_OUT}`,
+    width: meta.width,
+    height: meta.height,
+    via: "sips (PDF page 1) → sharp WebP",
+  };
+}
+
 async function main() {
   console.log("🚤 Finalize seven-boat fleet optimizer\n");
   console.log(`Incoming: ${INCOMING}`);
@@ -228,6 +317,8 @@ async function main() {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "boat-heic-"));
   const report = {
     boats: [],
+    routes: [],
+    map: null,
     errors: [],
     hero: null,
     counts: {},
@@ -236,11 +327,15 @@ async function main() {
       "Red & Black shares Total Black WebP URLs in data/boats.ts (no physical copies)",
       "Old project originals not used",
       "Tiffany 5 skipped as duplicate of Tiffany 3",
+      "Маршрут 3.jpeg excluded — zaburdaev.ru watermark",
+      "Drawbridges route card uses SVG visual until a real photo arrives",
     ],
   };
 
   try {
     await processHero(report);
+    await processRoutes(report);
+    await processMapPdf(report, tempDir);
 
     for (const boat of BOAT_MAP) {
       await processBoat(boat, tempDir, report);

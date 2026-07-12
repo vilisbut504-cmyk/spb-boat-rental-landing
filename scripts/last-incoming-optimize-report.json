@@ -249,6 +249,39 @@
       "heicVia": "sharp"
     }
   ],
+  "routes": [
+    {
+      "source": "Маршрут 1.jpg",
+      "output": "/images/routes/forgotten-islands.webp",
+      "width": 600,
+      "height": 400
+    },
+    {
+      "source": "Маршрут 5 крейсер.jpg",
+      "output": "/images/routes/aurora-cruiser.webp",
+      "width": 1140,
+      "height": 759
+    },
+    {
+      "source": "Маршрут 2.jpeg",
+      "output": "/images/routes/finnish-gulf-lakhta.webp",
+      "width": 656,
+      "height": 438
+    },
+    {
+      "source": "Маршрут 4.jpeg",
+      "output": "/images/routes/sunset-on-water.webp",
+      "width": 720,
+      "height": 1280
+    }
+  ],
+  "map": {
+    "source": "6 маршрут отдельно.pdf",
+    "output": "/images/routes/allowed-navigation-zones.webp",
+    "width": 2400,
+    "height": 1696,
+    "via": "sips (PDF page 1) → sharp WebP"
+  },
   "errors": [],
   "hero": {
     "source": "Для главной на первый экран.png",
@@ -268,6 +301,8 @@
     "Blue Wave removed from active fleet — not processed",
     "Red & Black shares Total Black WebP URLs in data/boats.ts (no physical copies)",
     "Old project originals not used",
-    "Tiffany 5 skipped as duplicate of Tiffany 3"
+    "Tiffany 5 skipped as duplicate of Tiffany 3",
+    "Маршрут 3.jpeg excluded — zaburdaev.ru watermark",
+    "Drawbridges route card uses SVG visual until a real photo arrives"
   ]
 }

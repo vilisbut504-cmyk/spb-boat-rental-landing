@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prepaymentNote } from "@/data/content";
 import { bookableBoatNames } from "@/data/boats";
+import { routeNames } from "@/data/routes";
 
 export type LeadPayload = {
   name: string;
@@ -20,7 +21,7 @@ export type LeadPayload = {
 };
 
 const SUCCESS_MESSAGE =
-  "Заявка принята. Менеджер свяжется с вами, уточнит катер, маршрут, свободное время и подскажет способ внесения предоплаты 1 000 ₽ в счёт прогулки.";
+  "Заявка принята. Менеджер свяжется с вами, подтвердит катер, маршрут и свободное время, а также подскажет способ внесения предоплаты 1 000 ₽ в счёт прогулки.";
 
 const TEST_MODE_NOTE =
   "Сейчас заявка сохранена в тестовом режиме. Подключите LEADS_WEBHOOK_URL для отправки в CRM.";
@@ -44,6 +45,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const routeName = body.routeName?.trim() || body.route?.trim() || "";
+    if (routeName && !routeNames.includes(routeName)) {
+      return NextResponse.json(
+        { ok: false, error: "Выберите маршрут из списка" },
+        { status: 400 }
+      );
+    }
+
     const payload = {
       name: body.name.trim(),
       phone: body.phone.trim(),
@@ -51,7 +60,7 @@ export async function POST(request: Request) {
       time: body.time,
       guests: body.guests ?? body.people ?? "",
       boatName,
-      routeName: body.routeName?.trim() || body.route?.trim() || "",
+      routeName,
       format: body.format,
       comment: body.comment?.trim() || "",
       prepaymentNote: body.prepaymentNote?.trim() || prepaymentNote,
