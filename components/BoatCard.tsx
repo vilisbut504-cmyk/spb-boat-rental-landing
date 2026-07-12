@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { Boat } from "@/data/boats";
 import { useBooking } from "@/components/BookingProvider";
@@ -19,10 +19,164 @@ function SpecRow({ label, value }: { label: string; value?: string }) {
   );
 }
 
+function BoatLightbox({
+  boat,
+  index,
+  onClose,
+  onIndexChange,
+}: {
+  boat: Boat;
+  index: number;
+  onClose: () => void;
+  onIndexChange: (i: number) => void;
+}) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const src = boat.images[index];
+  const alt =
+    boat.imageAlts?.[index] ?? `${boat.name} — фото ${index + 1}`;
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") {
+        onIndexChange((index + 1) % boat.images.length);
+      }
+      if (e.key === "ArrowLeft") {
+        onIndexChange((index - 1 + boat.images.length) % boat.images.length);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose, onIndexChange, index, boat.images.length]);
+
+  if (!src) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex flex-col bg-ink/90 p-3 backdrop-blur-sm sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${boat.name} — просмотр фото`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="mx-auto flex w-full max-w-5xl flex-none items-center justify-between gap-4 pb-3">
+        <p className="truncate text-sm font-semibold text-white">
+          {boat.name}
+          <span className="ml-2 font-normal text-white/60">
+            {index + 1} / {boat.images.length}
+          </span>
+        </p>
+        <button
+          ref={closeButtonRef}
+          type="button"
+          onClick={onClose}
+          className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+          aria-label="Закрыть фото"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <div
+        className="relative mx-auto flex min-h-0 w-full max-w-5xl flex-1 items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {boat.images.length > 1 && (
+          <button
+            type="button"
+            onClick={() =>
+              onIndexChange((index - 1 + boat.images.length) % boat.images.length)
+            }
+            className="absolute left-1 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white sm:left-3"
+            aria-label="Предыдущее фото"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M15 6l-6 6 6 6" />
+            </svg>
+          </button>
+        )}
+
+        <div className="relative h-full max-h-[75vh] w-full">
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            sizes="(max-width: 1024px) 100vw, 1024px"
+            className="object-contain"
+            priority
+          />
+        </div>
+
+        {boat.images.length > 1 && (
+          <button
+            type="button"
+            onClick={() => onIndexChange((index + 1) % boat.images.length)}
+            className="absolute right-1 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white sm:right-3"
+            aria-label="Следующее фото"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {boat.images.length > 1 && (
+        <div
+          className="mx-auto mt-3 flex max-w-5xl flex-none gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {boat.thumbnails.map((thumb, i) => (
+            <button
+              key={`${boat.slug}-lb-thumb-${i}`}
+              type="button"
+              onClick={() => onIndexChange(i)}
+              className={`relative h-14 w-20 flex-none overflow-hidden rounded-lg border-2 ${
+                i === index ? "border-white" : "border-transparent opacity-70"
+              }`}
+              aria-label={`Показать фото ${i + 1}`}
+              aria-pressed={i === index}
+            >
+              <Image
+                src={thumb}
+                alt=""
+                width={80}
+                height={56}
+                className="h-full w-full object-cover"
+                sizes="80px"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function BoatCard({ boat }: Props) {
   const { scrollToBooking, scrollToTariffs } = useBooking();
   const [activeIndex, setActiveIndex] = useState(0);
   const [specsOpen, setSpecsOpen] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const openTriggerRef = useRef<HTMLButtonElement>(null);
 
   const hasImages = boat.images.length > 0;
   const mainSrc = hasImages ? boat.images[activeIndex] : null;
@@ -32,6 +186,11 @@ export function BoatCard({ boat }: Props) {
   const displayName = boat.shortName
     ? `${boat.name} · ${boat.shortName}`
     : boat.name;
+
+  const closeLightbox = useCallback(() => {
+    setLightboxOpen(false);
+    openTriggerRef.current?.focus();
+  }, []);
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-marine-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
@@ -43,7 +202,13 @@ export function BoatCard({ boat }: Props) {
         )}
 
         {mainSrc ? (
-          <div className="relative aspect-[900/650] w-full overflow-hidden bg-marine-50">
+          <button
+            ref={openTriggerRef}
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            className="relative block aspect-[900/650] w-full overflow-hidden bg-marine-50 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marine-600"
+            aria-label={`Открыть фото ${boat.name} крупнее`}
+          >
             <Image
               src={mainSrc}
               alt={mainAlt}
@@ -52,7 +217,10 @@ export function BoatCard({ boat }: Props) {
               className="h-full w-full object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
-          </div>
+            <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-ink/55 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm">
+              Открыть
+            </span>
+          </button>
         ) : (
           <div className="flex aspect-[900/650] w-full items-center justify-center bg-gradient-to-br from-marine-50 to-mist px-6 text-center">
             <div>
@@ -73,6 +241,10 @@ export function BoatCard({ boat }: Props) {
                 key={`${boat.slug}-thumb-${i}`}
                 type="button"
                 onClick={() => setActiveIndex(i)}
+                onDoubleClick={() => {
+                  setActiveIndex(i);
+                  setLightboxOpen(true);
+                }}
                 className={`relative h-[72px] w-[100px] flex-none overflow-hidden rounded-lg border-2 transition-colors sm:h-[100px] sm:w-[140px] ${
                   i === activeIndex
                     ? "border-marine-600"
@@ -182,6 +354,15 @@ export function BoatCard({ boat }: Props) {
           </button>
         </div>
       </div>
+
+      {lightboxOpen && (
+        <BoatLightbox
+          boat={boat}
+          index={activeIndex}
+          onClose={closeLightbox}
+          onIndexChange={setActiveIndex}
+        />
+      )}
     </article>
   );
 }

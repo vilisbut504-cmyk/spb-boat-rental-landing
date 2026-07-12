@@ -37,9 +37,18 @@ export default function CookiePage() {
 
       <Section heading="4. Контакты">
         <p>
-          Вопросы по использованию cookie направляйте на{" "}
-          <a href={`mailto:${site.email}`} className="text-navy-600 underline">
-            {site.email}
+          Вопросы по использованию cookie направляйте по телефону{" "}
+          <a href={site.phoneHref} className="text-navy-600 underline">
+            {site.phoneDisplay}
+          </a>{" "}
+          или в Telegram{" "}
+          <a
+            href={site.telegramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-navy-600 underline"
+          >
+            {site.telegramUsername}
           </a>
           .
         </p>

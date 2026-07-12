@@ -17,9 +17,8 @@ export default function PrivacyPage() {
 
       <Section heading="1. Какие данные мы собираем">
         <p>
-          Мы собираем имя, номер телефона, адрес электронной почты и
-          комментарии, которые вы указываете в форме бронирования, а также
-          технические данные (cookie, IP-адрес).
+          Мы собираем имя, номер телефона и комментарии, которые вы указываете
+          в форме бронирования, а также технические данные (cookie, IP-адрес).
         </p>
       </Section>
 
@@ -46,9 +45,18 @@ export default function PrivacyPage() {
 
       <Section heading="5. Контакты">
         <p>
-          По вопросам обработки данных пишите на{" "}
-          <a href={`mailto:${site.email}`} className="text-navy-600 underline">
-            {site.email}
+          По вопросам обработки данных звоните по телефону{" "}
+          <a href={site.phoneHref} className="text-navy-600 underline">
+            {site.phoneDisplay}
+          </a>{" "}
+          или пишите в Telegram{" "}
+          <a
+            href={site.telegramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-navy-600 underline"
+          >
+            {site.telegramUsername}
           </a>
           .
         </p>
