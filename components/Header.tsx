@@ -59,10 +59,10 @@ export function Header() {
               />
             </span>
             <span className="min-w-0 leading-tight">
-              <span className="block truncate text-base font-bold tracking-tight text-ink sm:text-lg">
+              <span className="block text-[13px] font-bold leading-snug tracking-tight text-ink sm:text-base lg:text-lg">
                 {site.name}
               </span>
-              <span className="block truncate text-[11px] font-medium uppercase tracking-[0.14em] text-ink-soft">
+              <span className="mt-0.5 block text-[10px] font-medium uppercase tracking-[0.12em] text-ink-soft sm:text-[11px] sm:tracking-[0.14em]">
                 {site.brandSubtitle}
               </span>
             </span>
@@ -145,7 +145,9 @@ export function Header() {
             />
           </span>
           <div>
-            <p className="font-bold text-ink">{site.name}</p>
+            <p className="text-base font-bold leading-snug text-ink">
+              {site.name}
+            </p>
             <p className="text-xs text-ink-soft">{site.brandSubtitle}</p>
           </div>
         </div>

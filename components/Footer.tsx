@@ -16,15 +16,23 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
         <div className="grid gap-10 md:grid-cols-3">
           <div>
-            <Link href="/" className="inline-block">
-              <span className="inline-flex rounded-2xl bg-white/95 px-4 py-3 ring-1 ring-white/20">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <span className="inline-flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-white/95 p-2 ring-1 ring-white/20">
                 <Image
-                  src={brandAssets.logoFull}
-                  alt={brandAssets.logoAlt}
-                  width={700}
-                  height={200}
-                  className="h-auto w-[200px] max-w-full object-contain"
+                  src={brandAssets.logoSmall}
+                  alt=""
+                  width={260}
+                  height={260}
+                  className="h-10 w-10 object-contain"
                 />
+              </span>
+              <span>
+                <span className="block text-base font-bold leading-snug text-white">
+                  {site.name}
+                </span>
+                <span className="mt-0.5 block text-[11px] font-medium uppercase tracking-[0.12em] text-white/50">
+                  {site.brandSubtitle}
+                </span>
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">

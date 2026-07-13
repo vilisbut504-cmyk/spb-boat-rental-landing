@@ -105,43 +105,49 @@ section[id] {
   animation: helmGlow 5.5s ease-in-out infinite;
 }
 
-/* Staggered scroll reveal: animates direct children when group enters view */
+/* Scroll reveal — progressive enhancement.
+   Content is ALWAYS visible by default. JS may soften entrance on desktop.
+   Never rely on IntersectionObserver to un-hide critical UI. */
 .reveal-group > * {
-  opacity: 0;
-  transform: translateY(22px);
-  transition:
-    opacity 0.7s cubic-bezier(0.23, 1, 0.32, 1),
-    transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.reveal-group.is-visible > * {
   opacity: 1;
   transform: none;
 }
 
-.reveal-group.is-visible > *:nth-child(1) {
-  transition-delay: 0ms;
-}
-.reveal-group.is-visible > *:nth-child(2) {
-  transition-delay: 80ms;
-}
-.reveal-group.is-visible > *:nth-child(3) {
-  transition-delay: 160ms;
-}
-.reveal-group.is-visible > *:nth-child(4) {
-  transition-delay: 240ms;
-}
-.reveal-group.is-visible > *:nth-child(5) {
-  transition-delay: 320ms;
-}
-.reveal-group.is-visible > *:nth-child(6) {
-  transition-delay: 400ms;
-}
-.reveal-group.is-visible > *:nth-child(7) {
-  transition-delay: 480ms;
-}
-.reveal-group.is-visible > *:nth-child(8) {
-  transition-delay: 560ms;
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .reveal-group.reveal-js:not(.is-visible) > * {
+    /* Fully opaque — only a gentle offset until the group enters view */
+    transform: translateY(14px);
+    transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .reveal-group.reveal-js.is-visible > * {
+    transform: none;
+  }
+
+  .reveal-group.reveal-js.is-visible > *:nth-child(1) {
+    transition-delay: 0ms;
+  }
+  .reveal-group.reveal-js.is-visible > *:nth-child(2) {
+    transition-delay: 80ms;
+  }
+  .reveal-group.reveal-js.is-visible > *:nth-child(3) {
+    transition-delay: 160ms;
+  }
+  .reveal-group.reveal-js.is-visible > *:nth-child(4) {
+    transition-delay: 240ms;
+  }
+  .reveal-group.reveal-js.is-visible > *:nth-child(5) {
+    transition-delay: 320ms;
+  }
+  .reveal-group.reveal-js.is-visible > *:nth-child(6) {
+    transition-delay: 400ms;
+  }
+  .reveal-group.reveal-js.is-visible > *:nth-child(7) {
+    transition-delay: 480ms;
+  }
+  .reveal-group.reveal-js.is-visible > *:nth-child(8) {
+    transition-delay: 560ms;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -115,7 +115,7 @@ export function ContactStart() {
             >
               <Image
                 src={site.telegramQr}
-                alt="QR-код Telegram Питер Катер"
+                alt="QR-код Telegram проекта «Катер без капитана»"
                 width={800}
                 height={800}
                 className="h-[180px] w-[180px] sm:h-[220px] sm:w-[220px]"

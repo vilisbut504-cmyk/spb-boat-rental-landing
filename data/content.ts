@@ -159,8 +159,9 @@ export const heroBadges = [
 export const heroImage = "/images/hero/hero-fleet-lakhta.webp";
 
 export const brandAssets = {
-  logoSmall: "/images/brand/logo-piter-kater-small.webp",
-  logoFull: "/images/brand/logo-piter-kater.webp",
+  /** Graphic mark only — no brand wordmark (old raster logos retained but unused in UI) */
+  logoSmall: "/images/brand/logo-mark.webp",
+  logoFull: "/images/brand/logo-mark-lg.webp",
   favicon: "/images/brand/favicon.png",
-  logoAlt: "Питер Катер — аренда катера без капитана в Санкт-Петербурге",
+  logoAlt: "Катер без капитана — аренда катера без прав в Санкт-Петербурге",
 } as const;
