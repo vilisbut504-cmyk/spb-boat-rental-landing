@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import type { Boat } from "@/data/boats";
 import { useBooking } from "@/components/BookingProvider";
@@ -57,7 +58,9 @@ function BoatLightbox({
 
   if (!src) return null;
 
-  return (
+  // Portal to <body>: the boat card has `overflow-hidden` + a hover transform,
+  // which would otherwise become the containing block for this fixed overlay.
+  return createPortal(
     <div
       className="fixed inset-0 z-[80] flex flex-col bg-ink/90 p-3 backdrop-blur-sm sm:p-6"
       role="dialog"
@@ -167,7 +170,8 @@ function BoatLightbox({
           ))}
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
 

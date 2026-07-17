@@ -6,6 +6,7 @@ import { Routes } from "@/components/Routes";
 import { Steps } from "@/components/Steps";
 import { Safety } from "@/components/Safety";
 import { Conditions } from "@/components/Conditions";
+import { Certificates } from "@/components/Certificates";
 import { ContactStart } from "@/components/ContactStart";
 import { Booking } from "@/components/Booking";
 import { Faq } from "@/components/Faq";
@@ -22,6 +23,7 @@ export default function Home() {
       <Steps />
       <Safety />
       <Conditions />
+      <Certificates />
       <ContactStart />
       <Booking />
       <Faq />

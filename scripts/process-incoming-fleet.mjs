@@ -37,7 +37,14 @@ const ROUTE_MAP = [
   { source: "Маршрут 1.jpg", out: "forgotten-islands.webp" },
   { source: "Маршрут 5 крейсер.jpg", out: "aurora-cruiser.webp" },
   { source: "Маршрут 2.jpeg", out: "finnish-gulf-lakhta.webp" },
-  { source: "Маршрут 4.jpeg", out: "sunset-on-water.webp" },
+  // Sunset card: owner-provided Total Black + Lakhta Center photo
+  // (replaces the old "Маршрут 4.jpeg" sunset image).
+  {
+    source: "sunset-total-black-lakhta.png",
+    out: "sunset-total-black.webp",
+    width: 1920,
+    quality: 86,
+  },
 ];
 
 const MAP_PDF = "6 маршрут отдельно.pdf";
@@ -244,7 +251,7 @@ async function processRoutes(report) {
   console.log("\n🗺  Routes");
   await ensureDir(ROUTES_DIR);
 
-  for (const { source, out } of ROUTE_MAP) {
+  for (const { source, out, width, quality } of ROUTE_MAP) {
     const full = path.join(INCOMING, source);
     if (!fsSync.existsSync(full)) {
       console.error(`   ✗ missing: ${source}`);
@@ -254,8 +261,12 @@ async function processRoutes(report) {
     const outPath = path.join(ROUTES_DIR, out);
     await sharp(full)
       .rotate()
-      .resize({ width: ROUTE.width, fit: "inside", withoutEnlargement: true })
-      .webp({ quality: ROUTE.quality, effort: 4 })
+      .resize({
+        width: width ?? ROUTE.width,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: quality ?? ROUTE.quality, effort: 4 })
       .toFile(outPath);
     const meta = await sharp(outPath).metadata();
     console.log(`   ✓ ${source} → routes/${out} (${meta.width}x${meta.height})`);

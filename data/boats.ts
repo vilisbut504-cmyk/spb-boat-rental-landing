@@ -4,6 +4,8 @@ export type Boat = {
   shortName?: string;
   priceFrom?: string;
   capacity?: string;
+  /** Structured max guest count — single source for form and API validation */
+  maxGuests: number;
   year?: string;
   engine?: string;
   power?: string;
@@ -107,6 +109,7 @@ export const boats: Boat[] = [
     shortName: "Синий катер",
     ...sharedSpecs,
     capacity: "до 4 человек",
+    maxGuests: 4,
     description:
       "Синий катер Tiffany для стильной прогулки, свидания и ярких кадров на воде.",
     comfort: sharedComfort,
@@ -121,6 +124,7 @@ export const boats: Boat[] = [
     shortName: "Красный катер",
     ...sharedSpecs,
     capacity: "до 5 человек",
+    maxGuests: 5,
     description:
       "Яркий красный катер для компании, дня рождения и эффектных фотографий на воде.",
     badge: "До 5 человек",
@@ -136,6 +140,7 @@ export const boats: Boat[] = [
     shortName: "Красная акула",
     ...sharedSpecs,
     capacity: "до 4 человек",
+    maxGuests: 4,
     description:
       "Красная акула — самостоятельный красный катер для уверенной прогулки по Неве и каналам.",
     comfort: sharedComfort,
@@ -150,6 +155,7 @@ export const boats: Boat[] = [
     shortName: "Чёрный катер",
     ...sharedSpecs,
     capacity: "до 4 человек",
+    maxGuests: 4,
     description:
       "Полностью чёрный катер для премиальной вечерней прогулки и уверенного силуэта на воде.",
     comfort: sharedComfort,
@@ -164,6 +170,7 @@ export const boats: Boat[] = [
     shortName: "Красно-чёрный катер",
     ...sharedSpecs,
     capacity: "до 4 человек",
+    maxGuests: 4,
     description:
       "Красно-чёрный катер для яркой самостоятельной прогулки. Отдельная модель парка с собственной бронью.",
     comfort: sharedComfort,
@@ -181,6 +188,7 @@ export const boats: Boat[] = [
     shortName: "Жёлтый катер",
     ...sharedSpecs,
     capacity: "до 5 человек",
+    maxGuests: 5,
     description:
       "Заметный жёлтый катер для небольшой компании, летней прогулки и закатных видов у Лахты.",
     badge: "До 5 человек",
@@ -196,6 +204,7 @@ export const boats: Boat[] = [
     shortName: "Белая акула",
     ...sharedSpecs,
     capacity: "до 4 человек",
+    maxGuests: 4,
     description:
       "Белая акула — светлый катер для аккуратной городской прогулки по Неве, каналам и маршрутам Петербурга.",
     comfort: sharedComfort,

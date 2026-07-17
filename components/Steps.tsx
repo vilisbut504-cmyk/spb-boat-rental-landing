@@ -32,6 +32,9 @@ export function Steps() {
                 </span>
                 <h3 className="mt-3 text-lg font-semibold leading-snug text-ink lg:mt-8">
                   {step.title}
+                  {step.titleExclamation && (
+                    <span className="text-red-600">!</span>
+                  )}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink-soft">
                   {step.text}

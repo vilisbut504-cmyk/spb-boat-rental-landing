@@ -3,10 +3,13 @@ import Link from "next/link";
 import { legalLinks, site } from "@/data/site";
 import { brandAssets } from "@/data/content";
 import {
+  MaxIcon,
   PhoneIcon,
   TelegramIcon,
   VkIcon,
+  WhatsAppIcon,
 } from "@/components/SocialIcons";
+import { CopyMaxNumber } from "@/components/CopyMaxNumber";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -74,6 +77,28 @@ export function Footer() {
                   <PhoneIcon className="h-4 w-4 shrink-0" />
                   {site.phoneDisplay}
                 </a>
+              </li>
+              <li>
+                <a
+                  href={site.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={site.whatsappAriaLabel}
+                  className="inline-flex items-center gap-2 transition-colors hover:text-white"
+                >
+                  <WhatsAppIcon className="h-4 w-4 shrink-0" />
+                  WhatsApp · {site.whatsappDisplay}
+                </a>
+              </li>
+              <li>
+                <span className="inline-flex flex-wrap items-center gap-2">
+                  <MaxIcon className="h-4 w-4 shrink-0" />
+                  MAX · {site.maxDisplay}
+                  <CopyMaxNumber
+                    number={site.maxCanonical}
+                    className="rounded-full border border-white/25 px-3 py-0.5 text-xs font-medium text-white/70 transition-colors hover:border-white/60 hover:text-white"
+                  />
+                </span>
               </li>
               <li>
                 <a

@@ -4,8 +4,13 @@ import { useEffect, useState } from "react";
 import { SectionHeading } from "@/components/SectionHeading";
 import { useBooking } from "@/components/BookingProvider";
 import { boats } from "@/data/boats";
-import { prepaymentNote } from "@/data/content";
+import {
+  prepaymentNote,
+  certificateFormatName,
+  certificates,
+} from "@/data/content";
 import { routeNames } from "@/data/routes";
+import { normalizeRuPhone, formatRuPhoneDisplay } from "@/lib/phone";
 
 type Fields = {
   name: string;
@@ -16,6 +21,7 @@ type Fields = {
   boatName: string;
   route: string;
   format: string;
+  certificateAmount: string;
   comment: string;
   agreePrivacy: boolean;
   agreeRules: boolean;
@@ -30,6 +36,7 @@ const initial: Fields = {
   boatName: "",
   route: "",
   format: "",
+  certificateAmount: "",
   comment: "",
   agreePrivacy: false,
   agreeRules: false,
@@ -43,25 +50,49 @@ const formatOptions = [
   "Фотосессия",
   "Разводные мосты",
   "Просто прогулка",
+  certificateFormatName,
 ];
+
+/** No boat selected yet → allow the largest fleet capacity */
+const DEFAULT_MAX_GUESTS = 5;
+
+function maxGuestsFor(boatName: string): number {
+  const boat = boats.find((b) => b.name === boatName);
+  return boat?.maxGuests ?? DEFAULT_MAX_GUESTS;
+}
 
 function validate(f: Fields) {
   const e: Partial<Record<keyof Fields, string>> = {};
   if (f.name.trim().length < 2) e.name = "Укажите имя";
-  const phoneDigits = f.phone.replace(/\D/g, "");
-  if (phoneDigits.length < 10) e.phone = "Укажите корректный телефон";
+  const phone = normalizeRuPhone(f.phone);
+  if (!phone.ok) e.phone = phone.error;
   if (!f.date) e.date = "Выберите дату";
   if (!f.time) e.time = "Выберите время";
-  if (!f.guests || Number(f.guests) < 1) e.guests = "Сколько человек?";
+  const maxGuests = maxGuestsFor(f.boatName);
+  const guestsNum = Number(f.guests);
+  if (!f.guests || guestsNum < 1) {
+    e.guests = "Сколько человек?";
+  } else if (guestsNum > maxGuests) {
+    e.guests = `Для выбранного катера — до ${maxGuests} человек`;
+  }
   if (!f.format) e.format = "Выберите формат";
+  if (f.format === certificateFormatName && !f.certificateAmount) {
+    e.certificateAmount = "Выберите номинал";
+  }
   if (!f.agreePrivacy) e.agreePrivacy = "Необходимо согласие";
   if (!f.agreeRules) e.agreeRules = "Необходимо согласие";
   return e;
 }
 
 export function Booking() {
-  const { selectedBoat, selectedRoute, setSelectedBoat, setSelectedRoute } =
-    useBooking();
+  const {
+    selectedBoat,
+    selectedRoute,
+    selectedCertificate,
+    setSelectedBoat,
+    setSelectedRoute,
+    setSelectedCertificate,
+  } = useBooking();
   const [fields, setFields] = useState<Fields>(initial);
   const [errors, setErrors] = useState<
     Partial<Record<keyof Fields, string>>
@@ -70,6 +101,7 @@ export function Booking() {
   const [submitting, setSubmitting] = useState(false);
   const [serverMessage, setServerMessage] = useState("");
   const [testModeNote, setTestModeNote] = useState("");
+  const [guestNotice, setGuestNotice] = useState("");
 
   // Sync boat/route chosen from Fleet/Routes into the form without resetting other fields.
   useEffect(() => {
@@ -86,14 +118,63 @@ export function Booking() {
     }
   }, [selectedRoute]);
 
+  // Gift certificate chosen in the Certificates section → switch format + amount only.
+  useEffect(() => {
+    if (selectedCertificate) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional BookingProvider → form sync
+      setFields((prev) => ({
+        ...prev,
+        format: certificateFormatName,
+        certificateAmount: selectedCertificate,
+      }));
+    }
+  }, [selectedCertificate]);
+
   const update = (key: keyof Fields, value: string | boolean) => {
-    setFields((prev) => ({ ...prev, [key]: value }));
+    setFields((prev) => {
+      const next = { ...prev, [key]: value } as Fields;
+      // Boat switched to a smaller one → clamp guests, keep everything else.
+      if (key === "boatName" && typeof value === "string") {
+        const max = maxGuestsFor(value);
+        if (next.guests && Number(next.guests) > max) {
+          next.guests = String(max);
+          setGuestNotice(
+            `Для выбранного катера количество гостей изменено на ${max}.`
+          );
+        } else {
+          setGuestNotice("");
+        }
+      }
+      if (key === "guests") setGuestNotice("");
+      // Regular walk format → certificate amount must be empty.
+      if (
+        key === "format" &&
+        typeof value === "string" &&
+        value !== certificateFormatName
+      ) {
+        next.certificateAmount = "";
+      }
+      return next;
+    });
     setErrors((prev) => ({ ...prev, [key]: undefined }));
     if (key === "boatName" && typeof value === "string") {
       setSelectedBoat(value);
     }
     if (key === "route" && typeof value === "string") {
       setSelectedRoute(value);
+    }
+    if (key === "certificateAmount" && typeof value === "string") {
+      setSelectedCertificate(value);
+    }
+  };
+
+  const onPhoneBlur = () => {
+    const result = normalizeRuPhone(fields.phone);
+    if (result.ok) {
+      setFields((prev) => ({
+        ...prev,
+        phone: formatRuPhoneDisplay(result.canonical),
+      }));
     }
   };
 
@@ -103,6 +184,9 @@ export function Booking() {
     setErrors(e);
     if (Object.keys(e).length > 0) return;
 
+    const normalizedPhone = normalizeRuPhone(fields.phone);
+    if (!normalizedPhone.ok) return;
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/lead", {
@@ -110,7 +194,7 @@ export function Booking() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: fields.name,
-          phone: fields.phone,
+          phone: normalizedPhone.canonical,
           date: fields.date,
           time: fields.time,
           people: fields.guests,
@@ -118,6 +202,10 @@ export function Booking() {
           boatName: fields.boatName,
           routeName: fields.route,
           format: fields.format,
+          certificateAmount:
+            fields.format === certificateFormatName
+              ? fields.certificateAmount
+              : "",
           comment: fields.comment,
           prepaymentNote,
           privacyAccepted: fields.agreePrivacy,
@@ -148,10 +236,17 @@ export function Booking() {
     setFields(initial);
     setSelectedBoat("");
     setSelectedRoute("");
+    setSelectedCertificate("");
     setSubmitted(false);
     setServerMessage("");
     setTestModeNote("");
+    setGuestNotice("");
   };
+
+  const maxGuests = maxGuestsFor(fields.boatName);
+  const guestOptions = Array.from({ length: maxGuests }, (_, i) =>
+    String(i + 1)
+  );
 
   return (
     <section id="booking" className="bg-milk py-20 sm:py-24">
@@ -224,6 +319,7 @@ export function Booking() {
                     type="tel"
                     value={fields.phone}
                     onChange={(e) => update("phone", e.target.value)}
+                    onBlur={onPhoneBlur}
                     placeholder="+7 (___) ___-__-__"
                     className={fieldClass("phone")}
                   />
@@ -248,15 +344,32 @@ export function Booking() {
                 </Field>
 
                 <Field label="Количество человек" error={errors.guests}>
-                  <input
-                    type="number"
-                    min={1}
-                    max={12}
+                  <select
                     value={fields.guests}
                     onChange={(e) => update("guests", e.target.value)}
-                    placeholder="Например, 4"
                     className={fieldClass("guests")}
-                  />
+                  >
+                    <option value="">Выберите количество</option>
+                    {guestOptions.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                  {guestNotice ? (
+                    <span
+                      className="mt-1 block text-xs text-marine-700"
+                      role="status"
+                    >
+                      {guestNotice}
+                    </span>
+                  ) : (
+                    <span className="mt-1 block text-xs text-ink-soft/70">
+                      {fields.boatName
+                        ? `Для этого катера — от 1 до ${maxGuests} человек`
+                        : "Вместимость зависит от выбранного катера: до 4 или до 5 человек"}
+                    </span>
+                  )}
                 </Field>
 
                 <Field label="Выбранный катер" error={undefined}>
@@ -308,6 +421,28 @@ export function Booking() {
                     ))}
                   </select>
                 </Field>
+
+                {fields.format === certificateFormatName && (
+                  <Field
+                    label="Номинал сертификата"
+                    error={errors.certificateAmount}
+                  >
+                    <select
+                      value={fields.certificateAmount}
+                      onChange={(e) =>
+                        update("certificateAmount", e.target.value)
+                      }
+                      className={fieldClass("certificateAmount")}
+                    >
+                      <option value="">Выберите номинал</option>
+                      {certificates.map((c) => (
+                        <option key={c.amount} value={String(c.amount)}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                )}
               </div>
 
               <div className="mt-5">

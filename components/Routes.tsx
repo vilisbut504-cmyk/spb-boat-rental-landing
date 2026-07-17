@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { routes, mapDisclaimer, type RouteItem } from "@/data/routes";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -111,6 +112,11 @@ function DrawbridgeVisual() {
   );
 }
 
+const MAP_ZOOM_LEVELS = [100, 125, 150, 200, 250] as const;
+
+/** Minimum internal image width (px) so the map stays readable while zooming */
+const MAP_MIN_WIDTH = 640;
+
 function MapLightbox({
   route,
   onClose,
@@ -119,6 +125,8 @@ function MapLightbox({
   onClose: () => void;
 }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [zoomIndex, setZoomIndex] = useState(0);
+  const zoom = MAP_ZOOM_LEVELS[zoomIndex];
 
   useEffect(() => {
     closeButtonRef.current?.focus();
@@ -136,9 +144,20 @@ function MapLightbox({
 
   if (!route.image) return null;
 
-  return (
+  // Rendered through a portal: the route card has `overflow-hidden` and a
+  // hover transform, which would otherwise turn it into the containing block
+  // for this fixed overlay and clip/misplace the whole lightbox.
+  const zoomOut = () => setZoomIndex((i) => Math.max(0, i - 1));
+  const zoomIn = () =>
+    setZoomIndex((i) => Math.min(MAP_ZOOM_LEVELS.length - 1, i + 1));
+  const zoomReset = () => setZoomIndex(0);
+
+  const controlClass =
+    "flex h-10 w-10 flex-none items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white disabled:opacity-35 disabled:hover:bg-white/10";
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex flex-col bg-ink/85 p-3 backdrop-blur-sm sm:p-6"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/85 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label="Карта разрешённых зон движения катеров"
@@ -146,49 +165,132 @@ function MapLightbox({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-none items-center justify-between gap-4 pb-3">
-        <p className="truncate text-sm font-semibold text-white">
-          Где могут ходить наши катера
-        </p>
-        <button
-          ref={closeButtonRef}
-          type="button"
-          onClick={onClose}
-          className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-          aria-label="Закрыть карту"
+      <div className="flex h-[94vh] w-[96vw] flex-col">
+        <div className="flex flex-none flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-3">
+          <p className="min-w-0 truncate text-sm font-semibold text-white">
+            Где могут ходить наши катера
+          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={zoomOut}
+              disabled={zoomIndex === 0}
+              className={controlClass}
+              aria-label="Уменьшить масштаб карты"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+            <span
+              className="min-w-[52px] text-center text-sm font-semibold tabular-nums text-white"
+              aria-live="polite"
+            >
+              {zoom}%
+            </span>
+            <button
+              type="button"
+              onClick={zoomIn}
+              disabled={zoomIndex === MAP_ZOOM_LEVELS.length - 1}
+              className={controlClass}
+              aria-label="Увеличить масштаб карты"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={zoomReset}
+              className="h-10 rounded-full bg-white/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              aria-label="Вернуть масштаб карты 100%"
+            >
+              100%
+            </button>
+            <a
+              href={route.image.src}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden h-10 items-center rounded-full bg-white/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white sm:flex"
+            >
+              Открыть оригинал
+            </a>
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={onClose}
+              className={controlClass}
+              aria-label="Закрыть карту"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div
+          className="min-h-0 flex-1 overflow-auto overscroll-contain rounded-xl bg-white"
+          onClick={(e) => e.stopPropagation()}
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden="true"
+          {/* Plain <img>: the 2400px original must not be downscaled by the
+              image optimizer inside the zoom viewer. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={route.image.src}
+            alt={route.image.alt}
+            width={route.image.width}
+            height={route.image.height}
+            className="h-auto"
+            style={{
+              width: `${zoom}%`,
+              minWidth: `${(MAP_MIN_WIDTH * zoom) / 100}px`,
+              maxWidth: "none",
+            }}
+          />
+        </div>
+
+        <div className="flex flex-none flex-wrap items-center justify-between gap-3 pt-3">
+          <p className="min-w-0 flex-1 text-xs leading-relaxed text-white/70">
+            {mapDisclaimer}
+          </p>
+          <a
+            href={route.image.src}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-semibold text-white underline underline-offset-4 transition-colors hover:text-sea-300 sm:hidden"
           >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
+            Открыть оригинал
+          </a>
+        </div>
       </div>
-
-      <div
-        className="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-auto overscroll-contain rounded-xl bg-white"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Image
-          src={route.image.src}
-          alt={route.image.alt}
-          width={route.image.width}
-          height={route.image.height}
-          sizes="(max-width: 1200px) 100vw, 1152px"
-          className="h-auto w-full min-w-[640px]"
-        />
-      </div>
-
-      <p className="mx-auto w-full max-w-6xl flex-none pt-3 text-xs leading-relaxed text-white/70">
-        {mapDisclaimer}
-      </p>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -206,8 +308,10 @@ function RouteCard({ route }: { route: RouteItem }) {
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-marine-100 bg-white transition-all hover:-translate-y-1 hover:shadow-md">
       <div
         className={`relative w-full overflow-hidden ${
-          route.isMap ? "bg-white p-2" : "bg-marine-900"
-        } aspect-[8/5]`}
+          // Map card matches the map's own 2400×1696 ratio so the legend
+          // and bottom edge are never cropped by object-contain letterboxing.
+          route.isMap ? "aspect-[24/17] bg-white" : "aspect-[8/5] bg-marine-900"
+        }`}
       >
         {route.image ? (
           <Image

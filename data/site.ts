@@ -12,6 +12,13 @@ export const site = {
   vkUrl: "https://vk.ru/arendabezkapitana",
   vkLabel: "Катер без капитана ВКонтакте",
   vkAriaLabel: "Открыть сообщество Катер без капитана ВКонтакте",
+  whatsappDisplay: "+7 981 252-69-69",
+  whatsappUrl: "https://wa.me/79812526969",
+  whatsappAriaLabel: "Написать в WhatsApp на номер +7 981 252-69-69",
+  /** MAX has no confirmed profile URL — show the number and offer to copy it */
+  maxDisplay: "+7 911 252-69-69",
+  maxCanonical: "+79112526969",
+  maxFindHint: "Найдите нас в MAX по номеру",
   address: "Санкт-Петербург, Левашовский проспект, дом 19",
   addressShort: "Левашовский проспект, дом 19",
   landmark: "Парковка у реки Карповки",

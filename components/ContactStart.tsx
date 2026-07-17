@@ -3,10 +3,13 @@ import { site } from "@/data/site";
 import { SectionHeading } from "@/components/SectionHeading";
 import {
   MapPinIcon,
+  MaxIcon,
   PhoneIcon,
   TelegramIcon,
   VkIcon,
+  WhatsAppIcon,
 } from "@/components/SocialIcons";
+import { CopyMaxNumber } from "@/components/CopyMaxNumber";
 
 export function ContactStart() {
   return (
@@ -57,6 +60,43 @@ export function ContactStart() {
                 {site.telegramUsername}
               </span>
             </a>
+
+            <a
+              href={site.whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={site.whatsappAriaLabel}
+              className="group flex flex-col rounded-2xl border border-marine-100 bg-milk p-5 transition-colors hover:border-marine-300"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-marine-50 text-marine-600 transition-colors group-hover:bg-marine-600 group-hover:text-white">
+                <WhatsAppIcon className="h-5 w-5" />
+              </span>
+              <span className="mt-4 text-xs font-semibold uppercase tracking-wider text-ink-soft">
+                WhatsApp
+              </span>
+              <span className="mt-1 text-lg font-semibold text-ink">
+                {site.whatsappDisplay}
+              </span>
+            </a>
+
+            <div className="flex flex-col rounded-2xl border border-marine-100 bg-milk p-5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-marine-50 text-marine-600">
+                <MaxIcon className="h-5 w-5" />
+              </span>
+              <span className="mt-4 text-xs font-semibold uppercase tracking-wider text-ink-soft">
+                MAX
+              </span>
+              <span className="mt-1 text-lg font-semibold text-ink">
+                {site.maxDisplay}
+              </span>
+              <span className="mt-1 text-xs leading-relaxed text-ink-soft">
+                {site.maxFindHint}
+              </span>
+              <CopyMaxNumber
+                number={site.maxCanonical}
+                className="mt-3 self-start rounded-full border border-marine-200 px-4 py-1.5 text-xs font-semibold text-marine-700 transition-colors hover:border-marine-500 hover:bg-marine-50"
+              />
+            </div>
 
             <a
               href={site.vkUrl}
