@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { navLinks } from "@/data/site";
 import { brandAssets } from "@/data/content";
 import { site } from "@/data/site";
@@ -11,7 +12,9 @@ import { useBooking } from "@/components/BookingProvider";
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
   const { scrollToBooking } = useBooking();
+  const navHref = (href: string) => (pathname === "/" ? href : `/${href}`);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -72,7 +75,7 @@ export function Header() {
             {navLinks.map((link) => (
               <a
                 key={link.href}
-                href={link.href}
+                href={navHref(link.href)}
                 className="text-sm font-medium text-ink-soft transition-colors hover:text-marine-700"
               >
                 {link.label}
@@ -156,7 +159,7 @@ export function Header() {
           {navLinks.map((link) => (
             <li key={link.href}>
               <a
-                href={link.href}
+                href={navHref(link.href)}
                 className="block rounded-xl px-3 py-3 text-lg font-semibold text-ink transition-colors hover:bg-marine-50"
                 onClick={() => setMenuOpen(false)}
               >

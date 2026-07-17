@@ -13,7 +13,8 @@ export function Advantages() {
           subtitle="Это не просто прогулка, а возможность самому управлять катером и наслаждаться видами Санкт-Петербурга с воды — настоящей Северной Венеции."
         />
 
-        <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {/* 6 cards → clean 3×2 grid on large screens */}
+        <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {advantages.map((a) => (
             <div
               key={a.title}

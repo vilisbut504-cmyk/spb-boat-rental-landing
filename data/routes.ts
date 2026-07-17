@@ -135,7 +135,7 @@ export const routes: RouteItem[] = [
       "Свидание, фотосессия, романтический вечер, красивое завершение дня",
     image: {
       src: "/images/routes/sunset-total-black.webp",
-      alt: "Чёрный катер Total Black на закате в Финском заливе рядом с Лахта Центром",
+      alt: "Катер Total Black идёт по Финскому заливу на закате в сторону Лахта Центра",
       width: 1672,
       height: 941,
     },

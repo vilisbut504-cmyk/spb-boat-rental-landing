@@ -1,90 +1,78 @@
-"use client";
+import Link from "next/link";
 
-import { certificates } from "@/data/content";
-import { SectionHeading } from "@/components/SectionHeading";
-import { RevealGroup } from "@/components/RevealGroup";
-import { useBooking } from "@/components/BookingProvider";
-
-/** Decorative marine waves — matches the site's stroke icon style */
-function WaveMark({ className }: { className?: string }) {
+/** Gift ribbon over a wave — matches the site's stroke icon style */
+function GiftMark({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 64 32"
+      viewBox="0 0 64 64"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.2"
+      strokeWidth="2.4"
       strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
       aria-hidden="true"
     >
-      <path d="M4 10c4-4 8-4 12 0s8 4 12 0 8-4 12 0 8 4 12 0 8-4 8-4" />
-      <path d="M4 22c4-4 8-4 12 0s8 4 12 0 8-4 12 0 8 4 12 0 8-4 8-4" opacity="0.45" />
+      <rect x="14" y="24" width="36" height="12" rx="2" />
+      <path d="M18 36v14a2 2 0 002 2h24a2 2 0 002-2V36" />
+      <path d="M32 24v28" />
+      <path d="M32 24c-6 0-10-3-10-7 0-2.8 2.2-4 4.4-4 3.6 0 5.6 4.4 5.6 11z" />
+      <path d="M32 24c6 0 10-3 10-7 0-2.8-2.2-4-4.4-4-3.6 0-5.6 4.4-5.6 11z" />
+      <path d="M6 60c2.5-2 5-2 7.5 0s5 2 7.5 0 5-2 7.5 0 5 2 7.5 0 5-2 7.5 0 5 2 7.5 0 5-2 7.5 0" opacity="0.5" strokeWidth="2" />
     </svg>
   );
 }
 
+/**
+ * Compact promo block on the home page. The full certificate system
+ * (tariffs + form) lives on /certificates.
+ */
 export function Certificates() {
-  const { scrollToBooking } = useBooking();
-
   return (
-    <section id="certificates" className="bg-milk py-20 sm:py-24">
+    <section id="certificates" className="bg-milk py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
-        <SectionHeading
-          eyebrow="Подарочные сертификаты"
-          title="Подарите прогулку по Санкт-Петербургу"
-          subtitle="Подарочный сертификат на самостоятельную прогулку на катере — впечатление, которое запомнится надолго."
-          center
-        />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-marine-700 via-marine-600 to-sea-500 px-6 py-10 text-white sm:px-10 sm:py-12">
+          <span
+            className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full border border-white/15"
+            aria-hidden="true"
+          />
+          <span
+            className="pointer-events-none absolute -right-8 -top-8 h-56 w-56 rounded-full border border-white/10"
+            aria-hidden="true"
+          />
 
-        <RevealGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {certificates.map((cert) => (
-            <article
-              key={cert.amount}
-              className="group relative flex flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-marine-700 via-marine-600 to-sea-500 p-7 text-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md sm:p-8"
+          <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 flex-col items-start gap-6 sm:flex-row sm:items-center">
+              <span className="flex h-20 w-20 flex-none items-center justify-center rounded-2xl bg-white/10 text-white/90">
+                <GiftMark className="h-12 w-12" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                  Подарок близким
+                </p>
+                <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+                  Подарочные сертификаты
+                </h2>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/80 sm:text-base">
+                  Подарите самостоятельную прогулку на катере по
+                  Санкт-Петербургу — выберите продолжительность и оставьте
+                  заявку на оформление сертификата.
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-white/60 sm:text-sm">
+                  Сертификаты доступны на прогулки продолжительностью от 1 до
+                  3 часов.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/certificates"
+              className="w-full flex-none rounded-full bg-white px-8 py-3.5 text-center text-sm font-semibold text-marine-700 transition-colors hover:bg-marine-50 sm:w-auto"
             >
-              {/* subtle decorative ring */}
-              <span
-                className="pointer-events-none absolute -right-14 -top-14 h-44 w-44 rounded-full border border-white/15"
-                aria-hidden="true"
-              />
-              <span
-                className="pointer-events-none absolute -right-8 -top-8 h-44 w-44 rounded-full border border-white/10"
-                aria-hidden="true"
-              />
-
-              <WaveMark className="h-8 w-16 text-white/70" />
-
-              <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
-                Подарочный сертификат
-              </p>
-              <p className="mt-2 text-4xl font-extrabold tracking-tight sm:text-[2.6rem]">
-                {cert.label}
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-white/75">
-                На самостоятельную прогулку на катере по Неве, каналам и
-                Финскому заливу.
-              </p>
-
-              <button
-                type="button"
-                onClick={() =>
-                  scrollToBooking({
-                    certificateAmount: String(cert.amount),
-                  })
-                }
-                className="mt-7 w-full rounded-full bg-white px-6 py-3 text-sm font-semibold text-marine-700 transition-colors hover:bg-marine-50"
-                aria-label={`Выбрать подарочный сертификат на ${cert.label}`}
-              >
-                Выбрать сертификат
-              </button>
-            </article>
-          ))}
-        </RevealGroup>
-
-        <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-relaxed text-ink-soft">
-          Выберите номинал — форма заявки откроется с уже выбранным форматом
-          «Подарочный сертификат». Детали оформления подтвердит менеджер.
-        </p>
+              Выбрать сертификат
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   );

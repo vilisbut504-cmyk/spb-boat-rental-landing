@@ -10,11 +10,17 @@ export type PhoneResult =
   | { ok: false; error: string };
 
 const CANONICAL_RE = /^\+7\d{10}$/;
+const MOBILE_RE = /^\+79\d{9}$/;
 
 export function normalizeRuPhone(raw: string): PhoneResult {
   const trimmed = (raw ?? "").trim();
   if (!trimmed) {
     return { ok: false, error: "Укажите телефон" };
+  }
+
+  // Formatting characters are allowed; letters are not.
+  if (/[A-Za-zА-Яа-яЁё]/.test(trimmed)) {
+    return { ok: false, error: "Укажите российский мобильный номер" };
   }
 
   // Reject explicit foreign prefixes like +49..., +1... (a leading "+" must be +7)
@@ -29,13 +35,15 @@ export function normalizeRuPhone(raw: string): PhoneResult {
     canonical = `+7${digits.slice(1)}`;
   } else if (digits.length === 11 && digits.startsWith("7")) {
     canonical = `+${digits}`;
-  } else if (digits.length === 10 && !/^[78]/.test(digits)) {
-    // 10-digit input starting with 7/8 is almost always a mistyped
-    // 11-digit number — reject instead of guessing.
+  } else if (digits.length === 10 && digits.startsWith("9")) {
     canonical = `+7${digits}`;
   }
 
-  if (!canonical || !CANONICAL_RE.test(canonical)) {
+  if (
+    !canonical ||
+    !CANONICAL_RE.test(canonical) ||
+    !MOBILE_RE.test(canonical)
+  ) {
     return {
       ok: false,
       error: "Укажите корректный российский номер из 10 цифр",
@@ -75,6 +83,10 @@ export const PHONE_TEST_CASES: {
   { input: "+49 30 123456", expected: null },
   { input: "123456789012", expected: null },
   { input: "abc", expected: null },
+  { input: "abc9812526969", expected: null },
+  { input: "8123456789", expected: null },
+  { input: "71234567890", expected: null },
+  { input: "81234567890", expected: null },
   { input: "8981252696", expected: null }, // 10 digits starting with 8 — treated as an incomplete 11-digit number
   { input: "7981252696", expected: null }, // 10 digits starting with 7 — same
 ];

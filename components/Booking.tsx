@@ -4,11 +4,7 @@ import { useEffect, useState } from "react";
 import { SectionHeading } from "@/components/SectionHeading";
 import { useBooking } from "@/components/BookingProvider";
 import { boats } from "@/data/boats";
-import {
-  prepaymentNote,
-  certificateFormatName,
-  certificates,
-} from "@/data/content";
+import { prepaymentNote } from "@/data/content";
 import { routeNames } from "@/data/routes";
 import { normalizeRuPhone, formatRuPhoneDisplay } from "@/lib/phone";
 
@@ -21,7 +17,6 @@ type Fields = {
   boatName: string;
   route: string;
   format: string;
-  certificateAmount: string;
   comment: string;
   agreePrivacy: boolean;
   agreeRules: boolean;
@@ -36,7 +31,6 @@ const initial: Fields = {
   boatName: "",
   route: "",
   format: "",
-  certificateAmount: "",
   comment: "",
   agreePrivacy: false,
   agreeRules: false,
@@ -50,7 +44,6 @@ const formatOptions = [
   "Фотосессия",
   "Разводные мосты",
   "Просто прогулка",
-  certificateFormatName,
 ];
 
 /** No boat selected yet → allow the largest fleet capacity */
@@ -76,23 +69,14 @@ function validate(f: Fields) {
     e.guests = `Для выбранного катера — до ${maxGuests} человек`;
   }
   if (!f.format) e.format = "Выберите формат";
-  if (f.format === certificateFormatName && !f.certificateAmount) {
-    e.certificateAmount = "Выберите номинал";
-  }
   if (!f.agreePrivacy) e.agreePrivacy = "Необходимо согласие";
   if (!f.agreeRules) e.agreeRules = "Необходимо согласие";
   return e;
 }
 
 export function Booking() {
-  const {
-    selectedBoat,
-    selectedRoute,
-    selectedCertificate,
-    setSelectedBoat,
-    setSelectedRoute,
-    setSelectedCertificate,
-  } = useBooking();
+  const { selectedBoat, selectedRoute, setSelectedBoat, setSelectedRoute } =
+    useBooking();
   const [fields, setFields] = useState<Fields>(initial);
   const [errors, setErrors] = useState<
     Partial<Record<keyof Fields, string>>
@@ -118,18 +102,6 @@ export function Booking() {
     }
   }, [selectedRoute]);
 
-  // Gift certificate chosen in the Certificates section → switch format + amount only.
-  useEffect(() => {
-    if (selectedCertificate) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional BookingProvider → form sync
-      setFields((prev) => ({
-        ...prev,
-        format: certificateFormatName,
-        certificateAmount: selectedCertificate,
-      }));
-    }
-  }, [selectedCertificate]);
-
   const update = (key: keyof Fields, value: string | boolean) => {
     setFields((prev) => {
       const next = { ...prev, [key]: value } as Fields;
@@ -146,14 +118,6 @@ export function Booking() {
         }
       }
       if (key === "guests") setGuestNotice("");
-      // Regular walk format → certificate amount must be empty.
-      if (
-        key === "format" &&
-        typeof value === "string" &&
-        value !== certificateFormatName
-      ) {
-        next.certificateAmount = "";
-      }
       return next;
     });
     setErrors((prev) => ({ ...prev, [key]: undefined }));
@@ -162,9 +126,6 @@ export function Booking() {
     }
     if (key === "route" && typeof value === "string") {
       setSelectedRoute(value);
-    }
-    if (key === "certificateAmount" && typeof value === "string") {
-      setSelectedCertificate(value);
     }
   };
 
@@ -202,10 +163,6 @@ export function Booking() {
           boatName: fields.boatName,
           routeName: fields.route,
           format: fields.format,
-          certificateAmount:
-            fields.format === certificateFormatName
-              ? fields.certificateAmount
-              : "",
           comment: fields.comment,
           prepaymentNote,
           privacyAccepted: fields.agreePrivacy,
@@ -236,7 +193,6 @@ export function Booking() {
     setFields(initial);
     setSelectedBoat("");
     setSelectedRoute("");
-    setSelectedCertificate("");
     setSubmitted(false);
     setServerMessage("");
     setTestModeNote("");
@@ -421,28 +377,6 @@ export function Booking() {
                     ))}
                   </select>
                 </Field>
-
-                {fields.format === certificateFormatName && (
-                  <Field
-                    label="Номинал сертификата"
-                    error={errors.certificateAmount}
-                  >
-                    <select
-                      value={fields.certificateAmount}
-                      onChange={(e) =>
-                        update("certificateAmount", e.target.value)
-                      }
-                      className={fieldClass("certificateAmount")}
-                    >
-                      <option value="">Выберите номинал</option>
-                      {certificates.map((c) => (
-                        <option key={c.amount} value={String(c.amount)}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                )}
               </div>
 
               <div className="mt-5">

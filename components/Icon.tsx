@@ -89,6 +89,15 @@ const paths: Record<string, React.ReactNode> = {
       <path d="M10 20.5c0-1.8 1-3 2.3-3s2.3 1.2 2.3 3" />
     </>
   ),
+  speaker: (
+    <>
+      <rect x="7.5" y="3" width="9" height="18" rx="2.2" />
+      <circle cx="12" cy="8" r="1.5" />
+      <circle cx="12" cy="14.8" r="3" />
+      <circle cx="12" cy="14.8" r="0.5" fill="currentColor" />
+      <path d="M19.5 9c.9 1.8.9 4.2 0 6M22 7.5c1.4 2.7 1.4 6.3 0 9" opacity="0.6" strokeWidth="1.3" />
+    </>
+  ),
   camera: (
     <>
       <path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 011 1v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z" />

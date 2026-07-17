@@ -50,6 +50,14 @@ export function Footer() {
               Навигация
             </p>
             <ul className="mt-4 space-y-2">
+              <li>
+                <Link
+                  href="/certificates"
+                  className="text-sm text-white/70 transition-colors hover:text-white"
+                >
+                  Подарочные сертификаты
+                </Link>
+              </li>
               {legalLinks.map((link) => (
                 <li key={link.href}>
                   <Link

@@ -1,29 +1,37 @@
 import { NextResponse } from "next/server";
-import {
-  prepaymentNote,
-  certificateFormatName,
-  certificateAmounts,
-} from "@/data/content";
+import { prepaymentNote } from "@/data/content";
 import { boats, bookableBoatNames } from "@/data/boats";
 import { routeNames } from "@/data/routes";
+import {
+  getCertificateTariff,
+  certificateFormatName,
+  certificateContactMethods,
+  certificateContactMethodIds,
+} from "@/data/certificates";
 import { normalizeRuPhone } from "@/lib/phone";
 
 export type LeadPayload = {
+  leadType?: string;
   name: string;
   phone: string;
-  date: string;
-  time: string;
+  date?: string;
+  time?: string;
   guests?: string;
   people?: string;
   boatName?: string;
   routeName?: string;
   route?: string;
-  format: string;
-  certificateAmount?: string | number;
+  format?: string;
   comment?: string;
   prepaymentNote?: string;
   privacyAccepted?: boolean;
   rulesAccepted?: boolean;
+  // gift certificate lead
+  certificateTariffId?: string;
+  preferredContact?: string;
+  telegramUsername?: string;
+  privacyConsent?: boolean;
+  certificateConsent?: boolean;
 };
 
 /** Largest capacity in the fleet — the limit when no boat is chosen yet */
@@ -42,9 +50,153 @@ const TEST_MODE_MESSAGE =
 const TEST_MODE_NOTE =
   "Технически: заявка не доставлена менеджеру. Подключите LEADS_WEBHOOK_URL для реальной отправки.";
 
+const CERT_SUCCESS_MESSAGE =
+  "Заявка на сертификат отправлена. Менеджер свяжется с вами выбранным способом, подтвердит заказ и отправит реквизиты для оплаты.";
+
+const CERT_TEST_MODE_MESSAGE =
+  "Приём заявок через сайт пока настраивается. Чтобы оформить сертификат сейчас, пожалуйста, свяжитесь с нами напрямую.";
+
+function badRequest(code: string, error: string) {
+  return NextResponse.json({ ok: false, code, error }, { status: 400 });
+}
+
+async function deliver(payload: Record<string, unknown>) {
+  const webhookUrl = process.env.LEADS_WEBHOOK_URL;
+  if (!webhookUrl) return { delivered: false as const };
+
+  const webhookRes = await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!webhookRes.ok) {
+    console.error("[lead] webhook failed", webhookRes.status);
+    return { delivered: false as const, failed: true as const };
+  }
+  return { delivered: true as const };
+}
+
+/** Gift certificate lead — price is always resolved server-side by tariff id. */
+async function handleCertificateLead(body: LeadPayload) {
+  if (!body.name?.trim() || body.name.trim().length < 2) {
+    return badRequest("INVALID_NAME", "Укажите имя");
+  }
+
+  const phone = normalizeRuPhone(body.phone ?? "");
+  if (!phone.ok) {
+    return badRequest("INVALID_PHONE", phone.error);
+  }
+
+  const tariff = getCertificateTariff(String(body.certificateTariffId ?? ""));
+  if (!tariff) {
+    return badRequest(
+      "INVALID_CERTIFICATE_TARIFF",
+      "Выберите сертификат из списка тарифов"
+    );
+  }
+
+  const preferredContact = String(body.preferredContact ?? "");
+  if (!certificateContactMethodIds.includes(preferredContact)) {
+    return badRequest(
+      "INVALID_CONTACT_METHOD",
+      "Выберите способ связи: звонок, WhatsApp, Telegram или MAX"
+    );
+  }
+
+  const telegramUsername = String(body.telegramUsername ?? "").trim();
+  if (preferredContact === "telegram" && !telegramUsername) {
+    return badRequest(
+      "TELEGRAM_USERNAME_REQUIRED",
+      "Укажите имя пользователя в Telegram"
+    );
+  }
+
+  if (!body.privacyConsent || !body.certificateConsent) {
+    return badRequest("CONSENT_REQUIRED", "Необходимо оба согласия");
+  }
+
+  const contactLabel =
+    certificateContactMethods.find((m) => m.id === preferredContact)?.label ??
+    preferredContact;
+
+  // Structure is ready for the future CRM stage. Prices come only from
+  // data/certificates.ts — the client-sent price (if any) is ignored.
+  const payload = {
+    leadType: "gift_certificate",
+    format: certificateFormatName,
+    name: body.name.trim(),
+    phone: phone.canonical,
+    preferredContact,
+    preferredContactLabel: contactLabel,
+    telegramUsername: preferredContact === "telegram" ? telegramUsername : "",
+    certificateTariffId: tariff.id,
+    certificateDayType: tariff.dayType,
+    certificateDayLabel: tariff.dayLabel,
+    certificateDurationMinutes: tariff.durationMinutes,
+    certificateDurationLabel: tariff.durationLabel,
+    certificatePrice: tariff.price,
+    certificateDisplayLabel: tariff.displayLabel,
+    comment: body.comment?.trim() || "",
+    privacyConsent: true,
+    certificateConsent: true,
+    receivedAt: new Date().toISOString(),
+  };
+
+  const result = await deliver(payload);
+  if (result.delivered) {
+    return NextResponse.json({
+      ok: true,
+      testMode: false,
+      message: CERT_SUCCESS_MESSAGE,
+    });
+  }
+  if ("failed" in result && result.failed) {
+    return NextResponse.json(
+      { ok: false, error: "Не удалось отправить заявку" },
+      { status: 502 }
+    );
+  }
+
+  console.log("[lead] certificate test mode", payload);
+  return NextResponse.json({
+    ok: true,
+    testMode: true,
+    message: CERT_TEST_MODE_MESSAGE,
+    testModeNote: TEST_MODE_NOTE,
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as LeadPayload;
+
+    // Reject removed amount-based certificate fields without reintroducing
+    // them into the public payload type.
+    if (
+      Object.keys(body as Record<string, unknown>).some((key) =>
+        /^certificate.*amount$/i.test(key)
+      )
+    ) {
+      return badRequest(
+        "INVALID_CERTIFICATE_TARIFF",
+        "Выберите сертификат по категории дней и продолжительности"
+      );
+    }
+
+    if (body.leadType === "gift_certificate") {
+      return await handleCertificateLead(body);
+    }
+
+    // Regular walk leads must not contain certificate selection fields.
+    if (
+      body.format === certificateFormatName ||
+      body.certificateTariffId
+    ) {
+      return badRequest(
+        "INVALID_CERTIFICATE_TARIFF",
+        "Сертификаты оформляются на странице /certificates"
+      );
+    }
 
     if (!body.name?.trim() || !body.phone?.trim()) {
       return NextResponse.json(
@@ -55,10 +207,7 @@ export async function POST(request: Request) {
 
     const phone = normalizeRuPhone(body.phone);
     if (!phone.ok) {
-      return NextResponse.json(
-        { ok: false, code: "INVALID_PHONE", error: phone.error },
-        { status: 400 }
-      );
+      return badRequest("INVALID_PHONE", phone.error);
     }
 
     const boatName = body.boatName?.trim() || "";
@@ -77,15 +226,11 @@ export async function POST(request: Request) {
       const boat = boats.find((b) => b.name === boatName);
       const maxGuests = boat?.maxGuests ?? DEFAULT_MAX_GUESTS;
       if (!Number.isInteger(guests) || guests < 1 || guests > maxGuests) {
-        return NextResponse.json(
-          {
-            ok: false,
-            code: "INVALID_GUEST_COUNT",
-            error: boat
-              ? `Катер ${boat.name} вмещает от 1 до ${boat.maxGuests} человек`
-              : `Укажите количество гостей от 1 до ${maxGuests}`,
-          },
-          { status: 400 }
+        return badRequest(
+          "INVALID_GUEST_COUNT",
+          boat
+            ? `Катер ${boat.name} вмещает от 1 до ${boat.maxGuests} человек`
+            : `Укажите количество гостей от 1 до ${maxGuests}`
         );
       }
     }
@@ -98,37 +243,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Gift certificate: amount must be one of the approved values.
-    // For regular walk formats the amount must stay empty.
-    const isCertificate = body.format === certificateFormatName;
-    const certificateRaw = String(body.certificateAmount ?? "").trim();
-    let certificateAmount = "";
-    if (isCertificate) {
-      const amount = Number(certificateRaw);
-      if (!(certificateAmounts as readonly number[]).includes(amount)) {
-        return NextResponse.json(
-          {
-            ok: false,
-            code: "INVALID_CERTIFICATE_AMOUNT",
-            error: "Номинал сертификата: 5 000, 10 000 или 15 000 ₽",
-          },
-          { status: 400 }
-        );
-      }
-      certificateAmount = String(amount);
-    } else if (certificateRaw) {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "INVALID_CERTIFICATE_AMOUNT",
-          error:
-            "Номинал сертификата указывается только для формата «Подарочный сертификат»",
-        },
-        { status: 400 }
-      );
-    }
-
     const payload = {
+      leadType: "boat_rental",
       name: body.name.trim(),
       phone: phone.canonical,
       date: body.date,
@@ -137,7 +253,6 @@ export async function POST(request: Request) {
       boatName,
       routeName,
       format: body.format,
-      certificateAmount,
       comment: body.comment?.trim() || "",
       prepaymentNote: body.prepaymentNote?.trim() || prepaymentNote,
       privacyAccepted: Boolean(body.privacyAccepted),
@@ -145,28 +260,19 @@ export async function POST(request: Request) {
       receivedAt: new Date().toISOString(),
     };
 
-    const webhookUrl = process.env.LEADS_WEBHOOK_URL;
-
-    if (webhookUrl) {
-      const webhookRes = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!webhookRes.ok) {
-        console.error("[lead] webhook failed", webhookRes.status);
-        return NextResponse.json(
-          { ok: false, error: "Не удалось отправить заявку" },
-          { status: 502 }
-        );
-      }
-
+    const result = await deliver(payload);
+    if (result.delivered) {
       return NextResponse.json({
         ok: true,
         testMode: false,
         message: SUCCESS_MESSAGE,
       });
+    }
+    if ("failed" in result && result.failed) {
+      return NextResponse.json(
+        { ok: false, error: "Не удалось отправить заявку" },
+        { status: 502 }
+      );
     }
 
     console.log("[lead] test mode", payload);

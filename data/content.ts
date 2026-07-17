@@ -100,6 +100,11 @@ export const advantages = [
     title: "Японские моторы Suzuki и Tohatsu",
     text: "Катера оснащены современными четырёхтактными инжекторными моторами Suzuki и Tohatsu — с понятным управлением и уверенным ходом на воде.",
   },
+  {
+    icon: "speaker",
+    title: "Музыка на воде",
+    text: "Берите любимый плейлист — портативную колонку предоставим перед выходом на воду.",
+  },
 ];
 
 export const scenarios = [
@@ -204,21 +209,6 @@ export const heroBadges = [
   "Санкт-Петербург",
   "До 5 человек",
   "Бронь 1 000 ₽ в счёт катания",
-];
-
-export type Certificate = {
-  amount: 5000 | 10000 | 15000;
-  label: string;
-};
-
-export const certificateFormatName = "Подарочный сертификат";
-
-export const certificateAmounts = [5000, 10000, 15000] as const;
-
-export const certificates: Certificate[] = [
-  { amount: 5000, label: "5 000 ₽" },
-  { amount: 10000, label: "10 000 ₽" },
-  { amount: 15000, label: "15 000 ₽" },
 ];
 
 /** Hero fleet photo — Lakhta Center, four boats */
