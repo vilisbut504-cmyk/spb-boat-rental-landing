@@ -270,94 +270,106 @@ export async function createLeadInAmoCrm(
   input: AmoCrmLeadInput,
   fetchImpl: typeof fetch = fetch
 ): Promise<AmoCrmResult> {
-  const config = getAmoCrmConfig();
-  if (!config) {
-    return {
-      ok: false,
-      code: "NOT_CONFIGURED",
-      message: AMOCRM_NOT_CONFIGURED_MESSAGE,
-    };
-  }
-
-  const complexBody = buildComplexLeadPayload(config, input);
-
-  let complexRes: Response;
   try {
-    complexRes = await amoFetch(
-      config,
-      "/api/v4/leads/complex",
-      {
-        method: "POST",
-        body: JSON.stringify(complexBody),
-      },
-      fetchImpl
-    );
-  } catch (err) {
-    console.error(
-      "[amocrm] complex request failed",
-      err instanceof Error ? err.name : "error"
-    );
-    return {
-      ok: false,
-      code: "NETWORK_ERROR",
-      message: safeUpstreamMessage("NETWORK_ERROR"),
-    };
-  }
-
-  if (!complexRes.ok) {
-    console.error("[amocrm] complex status", complexRes.status);
-    return mapHttpStatus(complexRes.status);
-  }
-
-  let complexJson: unknown;
-  try {
-    complexJson = await complexRes.json();
-  } catch {
-    return {
-      ok: false,
-      code: "INVALID_RESPONSE",
-      message: safeUpstreamMessage("INVALID_RESPONSE"),
-    };
-  }
-
-  const leadId = parseComplexLeadId(complexJson);
-  if (!leadId) {
-    console.error("[amocrm] complex response missing lead id");
-    return {
-      ok: false,
-      code: "INVALID_RESPONSE",
-      message: safeUpstreamMessage("INVALID_RESPONSE"),
-    };
-  }
-
-  const noteBody = [
-    {
-      note_type: "common",
-      params: { text: buildNoteText(input) },
-    },
-  ];
-
-  try {
-    const noteRes = await amoFetch(
-      config,
-      `/api/v4/leads/${leadId}/notes`,
-      {
-        method: "POST",
-        body: JSON.stringify(noteBody),
-      },
-      fetchImpl
-    );
-    if (!noteRes.ok) {
-      console.error("[amocrm] note status", noteRes.status);
+    const config = getAmoCrmConfig();
+    if (!config) {
+      return {
+        ok: false,
+        code: "NOT_CONFIGURED",
+        message: AMOCRM_NOT_CONFIGURED_MESSAGE,
+      };
     }
+
+    const complexBody = buildComplexLeadPayload(config, input);
+
+    let complexRes: Response;
+    try {
+      complexRes = await amoFetch(
+        config,
+        "/api/v4/leads/complex",
+        {
+          method: "POST",
+          body: JSON.stringify(complexBody),
+        },
+        fetchImpl
+      );
+    } catch (err) {
+      console.error(
+        "[amocrm] complex request failed",
+        err instanceof Error ? err.name : "error"
+      );
+      return {
+        ok: false,
+        code: "NETWORK_ERROR",
+        message: safeUpstreamMessage("NETWORK_ERROR"),
+      };
+    }
+
+    if (!complexRes.ok) {
+      console.error("[amocrm] complex status", complexRes.status);
+      return mapHttpStatus(complexRes.status);
+    }
+
+    let complexJson: unknown;
+    try {
+      complexJson = await complexRes.json();
+    } catch {
+      return {
+        ok: false,
+        code: "INVALID_RESPONSE",
+        message: safeUpstreamMessage("INVALID_RESPONSE"),
+      };
+    }
+
+    const leadId = parseComplexLeadId(complexJson);
+    if (!leadId) {
+      console.error("[amocrm] complex response missing lead id");
+      return {
+        ok: false,
+        code: "INVALID_RESPONSE",
+        message: safeUpstreamMessage("INVALID_RESPONSE"),
+      };
+    }
+
+    const noteBody = [
+      {
+        note_type: "common",
+        params: { text: buildNoteText(input) },
+      },
+    ];
+
+    try {
+      const noteRes = await amoFetch(
+        config,
+        `/api/v4/leads/${leadId}/notes`,
+        {
+          method: "POST",
+          body: JSON.stringify(noteBody),
+        },
+        fetchImpl
+      );
+      if (!noteRes.ok) {
+        console.error("[amocrm] note status", noteRes.status);
+      }
+    } catch (err) {
+      console.error(
+        "[amocrm] note request failed",
+        err instanceof Error ? err.name : "error"
+      );
+    }
+
+    return { ok: true, leadId };
   } catch (err) {
     console.error(
-      "[amocrm] note request failed",
+      "[amocrm] unexpected",
       err instanceof Error ? err.name : "error"
     );
+    return {
+      ok: false,
+      code: "UPSTREAM_ERROR",
+      message: safeUpstreamMessage("UPSTREAM_ERROR"),
+    };
   }
-
-  return { ok: true, leadId };
 }
 
 /** User-facing success copy after a real CRM lead is created. */

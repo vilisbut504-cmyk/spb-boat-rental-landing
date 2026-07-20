@@ -17,6 +17,8 @@ import {
   isAmoCrmConfigured,
 } from "@/lib/amocrm";
 
+export const runtime = "nodejs";
+
 export type LeadPayload = {
   leadType?: string;
   name: string;
@@ -98,35 +100,58 @@ async function deliverLead(
   webhookPayload: Record<string, unknown>,
   webhookSuccessMessage: string
 ) {
-  if (isAmoCrmConfigured()) {
-    const amo = await createLeadInAmoCrm(amoInput);
-    if (amo.ok) {
+  try {
+    if (isAmoCrmConfigured()) {
+      const amo = await createLeadInAmoCrm(amoInput);
+      if (amo.ok) {
+        return NextResponse.json({
+          ok: true,
+          testMode: false,
+          delivered: true,
+          message: AMOCRM_SUCCESS_MESSAGE,
+        });
+      }
+      if (amo.code === "NOT_CONFIGURED") {
+        return notConfiguredResponse(amo.message);
+      }
+      return NextResponse.json(
+        {
+          ok: false,
+          code: amo.code,
+          error: amo.message,
+          contacts: CONTACT_HINT,
+        },
+        { status: amo.code === "RATE_LIMITED" ? 429 : 502 }
+      );
+    }
+
+    const result = await deliverWebhook(webhookPayload);
+    if (result.delivered) {
       return NextResponse.json({
         ok: true,
         testMode: false,
         delivered: true,
-        message: AMOCRM_SUCCESS_MESSAGE,
+        message: webhookSuccessMessage,
       });
     }
-    if (amo.code === "NOT_CONFIGURED") {
-      return notConfiguredResponse(amo.message);
+    if ("failed" in result && result.failed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Не удалось отправить заявку. Пожалуйста, свяжитесь с нами напрямую.",
+          contacts: CONTACT_HINT,
+        },
+        { status: 502 }
+      );
     }
-    return NextResponse.json(
-      { ok: false, code: amo.code, error: amo.message, contacts: CONTACT_HINT },
-      { status: amo.code === "RATE_LIMITED" ? 429 : 502 }
-    );
-  }
 
-  const result = await deliverWebhook(webhookPayload);
-  if (result.delivered) {
-    return NextResponse.json({
-      ok: true,
-      testMode: false,
-      delivered: true,
-      message: webhookSuccessMessage,
-    });
-  }
-  if ("failed" in result && result.failed) {
+    return notConfiguredResponse();
+  } catch (err) {
+    console.error(
+      "[lead] deliver failed",
+      err instanceof Error ? err.name : "error"
+    );
     return NextResponse.json(
       {
         ok: false,
@@ -137,8 +162,6 @@ async function deliverLead(
       { status: 502 }
     );
   }
-
-  return notConfiguredResponse();
 }
 
 /** Gift certificate lead — price is always resolved server-side by tariff id. */
