@@ -219,36 +219,35 @@ export const heroBadges = [
 /** Hero OG / social collage — not used in the visual Hero mosaic */
 export const heroImage = "/images/hero/hero-fleet-lakhta.webp";
 
-/** Four real hero photos — fixed order 1→4, static chessboard (not a carousel) */
+/**
+ * Four real hero photos — fixed order 1→4.
+ * Visual mosaic: TL 01, TR 02, BL 03, BR 04 (girl → boat / boat → girl).
+ * Landscape (02, 03): fit "contain" + blurred cover backdrop in Hero (no solid grey bars).
+ */
 export const heroRealPhotos = [
   {
     src: "/images/hero/hero-real-01.webp",
     alt: "Девушка отдыхает в чёрном катере на воде в Санкт-Петербурге",
-    /** cover works well for portrait source */
     fit: "cover" as const,
-    objectPosition: "center 18%",
-    bgClass: "bg-[#4a5560]",
+    objectPosition: "center 20%",
   },
   {
     src: "/images/hero/hero-real-02.webp",
     alt: "Красный катер для самостоятельной прогулки по Санкт-Петербургу",
     fit: "contain" as const,
-    objectPosition: "center",
-    bgClass: "bg-[#6d7f8f]",
+    objectPosition: "center center",
   },
   {
     src: "/images/hero/hero-real-03.webp",
     alt: "Чёрный катер Total Black у причала",
     fit: "contain" as const,
-    objectPosition: "center",
-    bgClass: "bg-[#3d4a52]",
+    objectPosition: "center center",
   },
   {
     src: "/images/hero/hero-real-04.webp",
     alt: "Девушка отдыхает в красном катере на воде в Санкт-Петербурге",
     fit: "cover" as const,
-    objectPosition: "center 22%",
-    bgClass: "bg-[#7a6a62]",
+    objectPosition: "center 24%",
   },
 ] as const;
 

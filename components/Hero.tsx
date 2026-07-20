@@ -3,14 +3,15 @@ import { site } from "@/data/site";
 import { heroBadges, heroRealPhotos } from "@/data/content";
 
 /**
- * Static chessboard of four real photos — not a carousel.
- * Visual order: top [2][4], bottom [1][3]. File order remains 1→2→3→4.
+ * Static 2×2 mosaic — not a carousel.
+ * Visual order matches file order: 01 TL, 02 TR, 03 BL, 04 BR
+ * (girl → boat / boat → girl).
  */
 const mosaicSlots = [
-  { photo: heroRealPhotos[1], grid: "col-start-1 row-start-1" },
-  { photo: heroRealPhotos[3], grid: "col-start-2 row-start-1" },
-  { photo: heroRealPhotos[0], grid: "col-start-1 row-start-2" },
-  { photo: heroRealPhotos[2], grid: "col-start-2 row-start-2" },
+  { photo: heroRealPhotos[0], grid: "col-start-1 row-start-1" },
+  { photo: heroRealPhotos[1], grid: "col-start-2 row-start-1" },
+  { photo: heroRealPhotos[2], grid: "col-start-1 row-start-2" },
+  { photo: heroRealPhotos[3], grid: "col-start-2 row-start-2" },
 ] as const;
 
 function HeroPhotoCard({
@@ -22,23 +23,56 @@ function HeroPhotoCard({
   priority?: boolean;
   className?: string;
 }) {
+  const isLandscapeFill = photo.fit === "contain";
+
   return (
     <div
-      className={`relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-[0_18px_40px_-20px_rgba(12,58,90,0.45)] ring-1 ring-white/70 max-[360px]:rounded-xl ${photo.bgClass} ${className ?? ""}`}
+      className={`relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-[0_18px_40px_-20px_rgba(12,58,90,0.45)] ring-1 ring-white/70 max-[360px]:rounded-xl ${className ?? ""}`}
     >
-      <Image
-        src={photo.src}
-        alt={photo.alt}
-        fill
-        className={
-          photo.fit === "contain" ? "object-contain" : "object-cover"
-        }
-        style={{ objectPosition: photo.objectPosition }}
-        priority={priority}
-        fetchPriority={priority ? "high" : "auto"}
-        loading={priority ? "eager" : "lazy"}
-        sizes="(max-width: 1024px) 45vw, 22vw"
-      />
+      {isLandscapeFill ? (
+        <>
+          {/* Soft photo backdrop — fills letterbox without solid grey bars */}
+          <Image
+            src={photo.src}
+            alt=""
+            fill
+            aria-hidden="true"
+            className="scale-125 object-cover blur-xl"
+            style={{ objectPosition: photo.objectPosition }}
+            sizes="(max-width: 1024px) 45vw, 22vw"
+            priority={priority}
+            fetchPriority={priority ? "high" : "auto"}
+            loading={priority ? "eager" : "lazy"}
+          />
+          <div
+            className="absolute inset-0 bg-marine-900/35"
+            aria-hidden="true"
+          />
+          <Image
+            src={photo.src}
+            alt={photo.alt}
+            fill
+            className="relative z-[1] object-contain"
+            style={{ objectPosition: photo.objectPosition }}
+            sizes="(max-width: 1024px) 45vw, 22vw"
+            priority={priority}
+            fetchPriority={priority ? "high" : "auto"}
+            loading={priority ? "eager" : "lazy"}
+          />
+        </>
+      ) : (
+        <Image
+          src={photo.src}
+          alt={photo.alt}
+          fill
+          className="object-cover"
+          style={{ objectPosition: photo.objectPosition }}
+          priority={priority}
+          fetchPriority={priority ? "high" : "auto"}
+          loading={priority ? "eager" : "lazy"}
+          sizes="(max-width: 1024px) 45vw, 22vw"
+        />
+      )}
     </div>
   );
 }
@@ -132,7 +166,7 @@ export function Hero() {
         </div>
 
         <div
-          className="animate-float-up relative mx-auto w-full max-w-md lg:max-w-none"
+          className="animate-float-up relative mx-auto w-full max-w-md pb-10 lg:max-w-none lg:pb-8"
           style={{ animationDelay: "0.18s" }}
         >
           {/* Soft route / wave line behind the mosaic — stays under faces */}
@@ -158,7 +192,7 @@ export function Hero() {
             />
           </svg>
 
-          <div className="relative z-10 grid grid-cols-2 gap-2.5 max-[360px]:gap-2 sm:gap-3.5">
+          <div className="relative z-10 grid grid-cols-2 gap-2.5 max-[360px]:gap-1.5 sm:gap-3">
             {mosaicSlots.map(({ photo, grid }, i) => {
               const isPhoto1 = photo.src === heroRealPhotos[0].src;
               const raiseCol2 = i === 1 || i === 3;
@@ -169,19 +203,20 @@ export function Hero() {
                   priority={isPhoto1}
                   className={`${grid} ${
                     raiseCol2
-                      ? "-mt-4 sm:-mt-5 lg:-mt-6"
-                      : "mt-4 sm:mt-5 lg:mt-6"
+                      ? "-mt-2.5 sm:-mt-3 lg:-mt-3.5"
+                      : "mt-2.5 sm:mt-3 lg:mt-3.5"
                   }`}
                 />
               );
             })}
           </div>
 
-          <div className="animate-helm-glow absolute -bottom-3 left-2 z-20 rounded-2xl border border-marine-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:-bottom-4 sm:left-0 sm:px-5 sm:py-4">
-            <div className="text-base font-extrabold leading-tight text-marine-700 sm:text-xl">
+          {/* Badge sits under mosaic so it does not cover faces or boat hulls */}
+          <div className="animate-helm-glow absolute bottom-0 left-1 z-20 rounded-2xl border border-marine-200 bg-white/95 px-3.5 py-2.5 shadow-lg backdrop-blur max-[360px]:left-0 max-[360px]:px-3 max-[360px]:py-2 sm:left-0 sm:px-5 sm:py-3.5">
+            <div className="text-sm font-extrabold leading-tight text-marine-700 sm:text-lg">
               Ты сам
             </div>
-            <div className="text-sm font-semibold text-sea-500">
+            <div className="text-xs font-semibold text-sea-500 sm:text-sm">
               за штурвалом
             </div>
           </div>
