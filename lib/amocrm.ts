@@ -10,6 +10,16 @@ export const AMOCRM_SITE_URL =
   process.env.SITE_PUBLIC_URL?.replace(/\/$/, "") ||
   "https://vilisbut504-cmyk-spb-boat-rental-landing-fbb1.twc1.net";
 
+/** User-facing success copy after a real CRM lead is created. */
+export const AMOCRM_SUCCESS_MESSAGE =
+  "Заявка отправлена. Менеджер свяжется с вами в ближайшее время.";
+
+export const AMOCRM_NOT_CONFIGURED_MESSAGE =
+  "Приём заявок через сайт пока настраивается. Пожалуйста, свяжитесь с нами напрямую по телефону, в Telegram или WhatsApp.";
+
+export const AMOCRM_MISCONFIGURED_MESSAGE =
+  "Приём заявок через сайт временно недоступен. Пожалуйста, свяжитесь с нами напрямую по телефону, в Telegram или WhatsApp.";
+
 export type AmoCrmConfig = {
   baseUrl: string;
   accessToken: string;
@@ -77,8 +87,21 @@ export function getAmoCrmConfig(): AmoCrmConfig | null {
     return null;
   }
 
-  if (!/^https:\/\/[a-z0-9-]+\.amocrm\.ru$/i.test(baseUrl)) {
-    console.error("[amocrm] AMOCRM_BASE_URL has unexpected format");
+  // Accept amoCRM and Kommo hosts; ignore path leftovers after trim.
+  let host = "";
+  try {
+    host = new URL(baseUrl).host.toLowerCase();
+  } catch {
+    console.error("[amocrm] AMOCRM_BASE_URL is not a valid URL");
+    return null;
+  }
+  const hostOk =
+    host.endsWith(".amocrm.ru") ||
+    host === "amocrm.ru" ||
+    host.endsWith(".kommo.com") ||
+    host === "kommo.com";
+  if (!baseUrl.startsWith("https://") || !hostOk) {
+    console.error("[amocrm] AMOCRM_BASE_URL host is not an amoCRM/Kommo https host");
     return null;
   }
 
@@ -94,6 +117,16 @@ export function getAmoCrmConfig(): AmoCrmConfig | null {
   }
 
   return { baseUrl, accessToken, pipelineId, statusId };
+}
+
+/** True when at least one AMOCRM_* variable is present (possibly incomplete). */
+export function hasAnyAmoCrmEnv(): boolean {
+  return Boolean(
+    (process.env.AMOCRM_BASE_URL ?? "").trim() ||
+      (process.env.AMOCRM_ACCESS_TOKEN ?? "").trim() ||
+      (process.env.AMOCRM_PIPELINE_ID ?? "").trim() ||
+      (process.env.AMOCRM_STATUS_ID ?? "").trim()
+  );
 }
 
 export function isAmoCrmConfigured(): boolean {
@@ -371,10 +404,3 @@ export async function createLeadInAmoCrm(
     };
   }
 }
-
-/** User-facing success copy after a real CRM lead is created. */
-export const AMOCRM_SUCCESS_MESSAGE =
-  "Заявка отправлена. Менеджер свяжется с вами в ближайшее время.";
-
-export const AMOCRM_NOT_CONFIGURED_MESSAGE =
-  "Приём заявок через сайт пока настраивается. Пожалуйста, свяжитесь с нами напрямую по телефону, в Telegram или WhatsApp.";

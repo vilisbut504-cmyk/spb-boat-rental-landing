@@ -11,9 +11,11 @@ import {
 import { normalizeRuPhone } from "@/lib/phone";
 import { site } from "@/data/site";
 import {
+  AMOCRM_MISCONFIGURED_MESSAGE,
   AMOCRM_NOT_CONFIGURED_MESSAGE,
   AMOCRM_SUCCESS_MESSAGE,
   createLeadInAmoCrm,
+  hasAnyAmoCrmEnv,
   isAmoCrmConfigured,
 } from "@/lib/amocrm";
 
@@ -101,7 +103,21 @@ async function deliverLead(
   webhookSuccessMessage: string
 ) {
   try {
-    if (isAmoCrmConfigured()) {
+    const amoReady = isAmoCrmConfigured();
+    if (!amoReady && hasAnyAmoCrmEnv()) {
+      console.error("[lead] AMOCRM_* present but incomplete/invalid");
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "CRM_MISCONFIGURED",
+          error: AMOCRM_MISCONFIGURED_MESSAGE,
+          contacts: CONTACT_HINT,
+        },
+        { status: 503 }
+      );
+    }
+
+    if (amoReady) {
       const amo = await createLeadInAmoCrm(amoInput);
       if (amo.ok) {
         return NextResponse.json({

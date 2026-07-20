@@ -35,8 +35,22 @@ function readConfig() {
   if (missing.length) {
     fail(`Missing or invalid env: ${missing.join(", ")}`);
   }
-  if (!/^https:\/\/[a-z0-9-]+\.amocrm\.ru$/i.test(baseUrl)) {
-    fail("AMOCRM_BASE_URL must look like https://subdomain.amocrm.ru");
+  if (!/^https:\/\//i.test(baseUrl)) {
+    fail("AMOCRM_BASE_URL must use https://");
+  }
+  let host = "";
+  try {
+    host = new URL(baseUrl).host.toLowerCase();
+  } catch {
+    fail("AMOCRM_BASE_URL is not a valid URL");
+  }
+  const hostOk =
+    host.endsWith(".amocrm.ru") ||
+    host === "amocrm.ru" ||
+    host.endsWith(".kommo.com") ||
+    host === "kommo.com";
+  if (!hostOk) {
+    fail("AMOCRM_BASE_URL host must be *.amocrm.ru or *.kommo.com");
   }
 
   return { baseUrl, accessToken, pipelineId, statusId };
