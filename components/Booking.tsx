@@ -13,6 +13,12 @@ import {
   formatRub,
 } from "@/data/pricing";
 import { normalizeRuPhone, formatRuPhoneDisplay } from "@/lib/phone";
+import { site } from "@/data/site";
+import {
+  PhoneIcon,
+  TelegramIcon,
+  WhatsAppIcon,
+} from "@/components/SocialIcons";
 
 type Fields = {
   name: string;
@@ -90,6 +96,7 @@ export function Booking() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [serverMessage, setServerMessage] = useState("");
+  const [testMode, setTestMode] = useState(false);
   const [testModeNote, setTestModeNote] = useState("");
   const [guestNotice, setGuestNotice] = useState("");
 
@@ -181,6 +188,7 @@ export function Booking() {
         return;
       }
       setServerMessage(data.message ?? "");
+      setTestMode(Boolean(data.testMode));
       setTestModeNote(data.testModeNote ?? "");
       setSubmitted(true);
     } catch {
@@ -201,6 +209,7 @@ export function Booking() {
     setSelectedRoute("");
     setSubmitted(false);
     setServerMessage("");
+    setTestMode(false);
     setTestModeNote("");
     setGuestNotice("");
   };
@@ -241,16 +250,56 @@ export function Booking() {
                 </svg>
               </div>
               <h3 className="mt-5 text-xl font-bold text-ink">
-                Заявка принята
+                {testMode ? "Приём заявок настраивается" : "Заявка отправлена"}
               </h3>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-soft">
                 {serverMessage ||
-                  "Заявка принята. Менеджер свяжется с вами, подтвердит катер, маршрут и свободное время, а также подскажет способ внесения предоплаты 1 000 ₽ в счёт прогулки."}
+                  "Заявка отправлена. Менеджер свяжется с вами в ближайшее время."}
               </p>
               {testModeNote && (
                 <p className="mt-2 max-w-md text-xs text-ink-soft/70">
                   {testModeNote}
                 </p>
+              )}
+              {testMode && (
+                <div className="mt-6 w-full max-w-md rounded-2xl border border-marine-100 bg-milk p-5 text-left">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
+                    Связаться напрямую
+                  </p>
+                  <ul className="mt-3 space-y-2.5 text-sm">
+                    <li>
+                      <a
+                        href={site.phoneHref}
+                        className="inline-flex items-center gap-2 font-medium text-marine-700 hover:text-marine-600"
+                      >
+                        <PhoneIcon className="h-4 w-4" />
+                        {site.phoneDisplay}
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href={site.whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 font-medium text-marine-700 hover:text-marine-600"
+                      >
+                        <WhatsAppIcon className="h-4 w-4" />
+                        WhatsApp · {site.whatsappDisplay}
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href={site.telegramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 font-medium text-marine-700 hover:text-marine-600"
+                      >
+                        <TelegramIcon className="h-4 w-4" />
+                        Telegram · {site.telegramUsername}
+                      </a>
+                    </li>
+                  </ul>
+                </div>
               )}
               <button
                 type="button"

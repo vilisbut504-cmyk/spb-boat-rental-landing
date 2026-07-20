@@ -9,6 +9,13 @@ import {
   certificateContactMethodIds,
 } from "@/data/certificates";
 import { normalizeRuPhone } from "@/lib/phone";
+import { site } from "@/data/site";
+import {
+  AMOCRM_NOT_CONFIGURED_MESSAGE,
+  AMOCRM_SUCCESS_MESSAGE,
+  createLeadInAmoCrm,
+  isAmoCrmConfigured,
+} from "@/lib/amocrm";
 
 export type LeadPayload = {
   leadType?: string;
@@ -37,30 +44,40 @@ export type LeadPayload = {
 /** Largest capacity in the fleet — the limit when no boat is chosen yet */
 const DEFAULT_MAX_GUESTS = 5;
 
-const SUCCESS_MESSAGE =
+/**
+ * Legacy webhook path — kept until amoCRM production is confirmed.
+ * When AMOCRM_* is configured, amoCRM is the primary delivery channel.
+ */
+const WEBHOOK_SUCCESS_MESSAGE =
   "Заявка принята. Менеджер свяжется с вами, подтвердит катер, маршрут и свободное время, а также подскажет способ внесения предоплаты 1 000 ₽ в счёт прогулки.";
 
-/**
- * Without LEADS_WEBHOOK_URL the lead is not delivered anywhere, so the
- * success text must not promise a manager callback.
- */
-const TEST_MODE_MESSAGE =
-  "Заявка сохранена в тестовом режиме. Приём заявок ещё настраивается — пожалуйста, свяжитесь с нами напрямую, чтобы подтвердить бронь.";
-
-const TEST_MODE_NOTE =
-  "Технически: заявка не доставлена менеджеру. Подключите LEADS_WEBHOOK_URL для реальной отправки.";
-
-const CERT_SUCCESS_MESSAGE =
+const CERT_WEBHOOK_SUCCESS_MESSAGE =
   "Заявка на сертификат отправлена. Менеджер свяжется с вами выбранным способом, подтвердит заказ и отправит реквизиты для оплаты.";
 
-const CERT_TEST_MODE_MESSAGE =
-  "Приём заявок через сайт пока настраивается. Чтобы оформить сертификат сейчас, пожалуйста, свяжитесь с нами напрямую.";
+const CONTACT_HINT = {
+  phoneDisplay: site.phoneDisplay,
+  phoneHref: site.phoneHref,
+  telegramUrl: site.telegramUrl,
+  telegramUsername: site.telegramUsername,
+  whatsappUrl: site.whatsappUrl,
+  whatsappDisplay: site.whatsappDisplay,
+};
 
 function badRequest(code: string, error: string) {
   return NextResponse.json({ ok: false, code, error }, { status: 400 });
 }
 
-async function deliver(payload: Record<string, unknown>) {
+function notConfiguredResponse(message = AMOCRM_NOT_CONFIGURED_MESSAGE) {
+  return NextResponse.json({
+    ok: true,
+    testMode: true,
+    delivered: false,
+    message,
+    contacts: CONTACT_HINT,
+  });
+}
+
+async function deliverWebhook(payload: Record<string, unknown>) {
   const webhookUrl = process.env.LEADS_WEBHOOK_URL;
   if (!webhookUrl) return { delivered: false as const };
 
@@ -74,6 +91,54 @@ async function deliver(payload: Record<string, unknown>) {
     return { delivered: false as const, failed: true as const };
   }
   return { delivered: true as const };
+}
+
+async function deliverLead(
+  amoInput: Parameters<typeof createLeadInAmoCrm>[0],
+  webhookPayload: Record<string, unknown>,
+  webhookSuccessMessage: string
+) {
+  if (isAmoCrmConfigured()) {
+    const amo = await createLeadInAmoCrm(amoInput);
+    if (amo.ok) {
+      return NextResponse.json({
+        ok: true,
+        testMode: false,
+        delivered: true,
+        message: AMOCRM_SUCCESS_MESSAGE,
+      });
+    }
+    if (amo.code === "NOT_CONFIGURED") {
+      return notConfiguredResponse(amo.message);
+    }
+    return NextResponse.json(
+      { ok: false, code: amo.code, error: amo.message, contacts: CONTACT_HINT },
+      { status: amo.code === "RATE_LIMITED" ? 429 : 502 }
+    );
+  }
+
+  const result = await deliverWebhook(webhookPayload);
+  if (result.delivered) {
+    return NextResponse.json({
+      ok: true,
+      testMode: false,
+      delivered: true,
+      message: webhookSuccessMessage,
+    });
+  }
+  if ("failed" in result && result.failed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Не удалось отправить заявку. Пожалуйста, свяжитесь с нами напрямую.",
+        contacts: CONTACT_HINT,
+      },
+      { status: 502 }
+    );
+  }
+
+  return notConfiguredResponse();
 }
 
 /** Gift certificate lead — price is always resolved server-side by tariff id. */
@@ -119,12 +184,13 @@ async function handleCertificateLead(body: LeadPayload) {
     certificateContactMethods.find((m) => m.id === preferredContact)?.label ??
     preferredContact;
 
-  // Structure is ready for the future CRM stage. Prices come only from
-  // data/certificates.ts — the client-sent price (if any) is ignored.
+  const name = body.name.trim();
+  const receivedAt = new Date().toISOString();
+
   const payload = {
     leadType: "gift_certificate",
     format: certificateFormatName,
-    name: body.name.trim(),
+    name,
     phone: phone.canonical,
     preferredContact,
     preferredContactLabel: contactLabel,
@@ -139,31 +205,27 @@ async function handleCertificateLead(body: LeadPayload) {
     comment: body.comment?.trim() || "",
     privacyConsent: true,
     certificateConsent: true,
-    receivedAt: new Date().toISOString(),
+    receivedAt,
   };
 
-  const result = await deliver(payload);
-  if (result.delivered) {
-    return NextResponse.json({
-      ok: true,
-      testMode: false,
-      message: CERT_SUCCESS_MESSAGE,
-    });
-  }
-  if ("failed" in result && result.failed) {
-    return NextResponse.json(
-      { ok: false, error: "Не удалось отправить заявку" },
-      { status: 502 }
-    );
-  }
-
-  console.log("[lead] certificate test mode", payload);
-  return NextResponse.json({
-    ok: true,
-    testMode: true,
-    message: CERT_TEST_MODE_MESSAGE,
-    testModeNote: TEST_MODE_NOTE,
-  });
+  return deliverLead(
+    {
+      kind: "gift_certificate",
+      name,
+      phone: phone.canonical,
+      certificateDisplayLabel: tariff.displayLabel,
+      certificateDayLabel: tariff.dayLabel,
+      certificateDurationLabel: tariff.durationLabel,
+      certificatePriceLabel: tariff.priceLabel,
+      preferredContactLabel: contactLabel,
+      telegramUsername:
+        preferredContact === "telegram" ? telegramUsername : undefined,
+      comment: body.comment?.trim() || "",
+      receivedAt,
+    },
+    payload,
+    CERT_WEBHOOK_SUCCESS_MESSAGE
+  );
 }
 
 export async function POST(request: Request) {
@@ -188,10 +250,7 @@ export async function POST(request: Request) {
     }
 
     // Regular walk leads must not contain certificate selection fields.
-    if (
-      body.format === certificateFormatName ||
-      body.certificateTariffId
-    ) {
+    if (body.format === certificateFormatName || body.certificateTariffId) {
       return badRequest(
         "INVALID_CERTIFICATE_TARIFF",
         "Сертификаты оформляются на странице /certificates"
@@ -243,9 +302,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const name = body.name.trim();
+    const receivedAt = new Date().toISOString();
+
     const payload = {
       leadType: "boat_rental",
-      name: body.name.trim(),
+      name,
       phone: phone.canonical,
       date: body.date,
       time: body.time,
@@ -257,36 +319,35 @@ export async function POST(request: Request) {
       prepaymentNote: body.prepaymentNote?.trim() || prepaymentNote,
       privacyAccepted: Boolean(body.privacyAccepted),
       rulesAccepted: Boolean(body.rulesAccepted),
-      receivedAt: new Date().toISOString(),
+      receivedAt,
     };
 
-    const result = await deliver(payload);
-    if (result.delivered) {
-      return NextResponse.json({
-        ok: true,
-        testMode: false,
-        message: SUCCESS_MESSAGE,
-      });
-    }
-    if ("failed" in result && result.failed) {
-      return NextResponse.json(
-        { ok: false, error: "Не удалось отправить заявку" },
-        { status: 502 }
-      );
-    }
-
-    console.log("[lead] test mode", payload);
-
-    return NextResponse.json({
-      ok: true,
-      testMode: true,
-      message: TEST_MODE_MESSAGE,
-      testModeNote: TEST_MODE_NOTE,
-    });
+    return deliverLead(
+      {
+        kind: "boat_rental",
+        name,
+        phone: phone.canonical,
+        boatName,
+        routeName,
+        date: body.date,
+        time: body.time,
+        guests: guestsRaw,
+        format: body.format,
+        comment: body.comment?.trim() || "",
+        receivedAt,
+      },
+      payload,
+      WEBHOOK_SUCCESS_MESSAGE
+    );
   } catch (err) {
-    console.error("[lead] error", err);
+    console.error("[lead] error", err instanceof Error ? err.name : "error");
     return NextResponse.json(
-      { ok: false, error: "Не удалось обработать заявку" },
+      {
+        ok: false,
+        error:
+          "Не удалось обработать заявку. Пожалуйста, свяжитесь с нами напрямую.",
+        contacts: CONTACT_HINT,
+      },
       { status: 500 }
     );
   }

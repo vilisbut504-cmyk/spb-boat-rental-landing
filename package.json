@@ -11,7 +11,10 @@
     "brand:images": "node scripts/optimize-brand-assets.mjs",
     "images:incoming": "node scripts/process-incoming-fleet.mjs",
     "generate:telegram-qr": "node scripts/generate-telegram-qr.mjs",
-    "check:build": "npm run images:webp && npm run build"
+    "check:build": "npm run images:webp && npm run build",
+    "check:amocrm": "node scripts/check-amocrm.mjs",
+    "test:amocrm": "node --experimental-strip-types scripts/test-amocrm.ts",
+    "test:phone": "node --experimental-strip-types scripts/test-phone.ts"
   },
   "dependencies": {
     "next": "16.2.9",
