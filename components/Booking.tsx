@@ -6,6 +6,12 @@ import { useBooking } from "@/components/BookingProvider";
 import { boats } from "@/data/boats";
 import { prepaymentNote } from "@/data/content";
 import { routeNames } from "@/data/routes";
+import {
+  isSpecialTariffBoat,
+  SPECIAL_BOAT_SURCHARGE,
+  FIFTH_PASSENGER_FEE,
+  formatRub,
+} from "@/data/pricing";
 import { normalizeRuPhone, formatRuPhoneDisplay } from "@/lib/phone";
 
 type Fields = {
@@ -203,6 +209,9 @@ export function Booking() {
   const guestOptions = Array.from({ length: maxGuests }, (_, i) =>
     String(i + 1)
   );
+  const specialBoat = isSpecialTariffBoat(fields.boatName);
+  const fifthGuestSelected =
+    specialBoat && Number(fields.guests) === 5;
 
   return (
     <section id="booking" className="bg-milk py-20 sm:py-24">
@@ -324,6 +333,15 @@ export function Booking() {
                       {fields.boatName
                         ? `Для этого катера — от 1 до ${maxGuests} человек`
                         : "Вместимость зависит от выбранного катера: до 4 или до 5 человек"}
+                    </span>
+                  )}
+                  {specialBoat && (
+                    <span className="mt-2 block rounded-lg bg-sea-400/10 px-3 py-2 text-xs leading-relaxed text-marine-800">
+                      Специальный тариф катера: +{formatRub(SPECIAL_BOAT_SURCHARGE)}{" "}
+                      к каждому тарифу прогулки.
+                      {fifthGuestSelected
+                        ? ` Пятый пассажир: +${formatRub(FIFTH_PASSENGER_FEE)}. Действуют обе доплаты.`
+                        : ` При 5 гостях дополнительно +${formatRub(FIFTH_PASSENGER_FEE)} за пятого пассажира.`}
                     </span>
                   )}
                 </Field>

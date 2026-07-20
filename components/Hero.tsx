@@ -1,10 +1,51 @@
 import Image from "next/image";
 import { site } from "@/data/site";
-import { heroBadges, heroImage } from "@/data/content";
+import { heroBadges, heroRealPhotos } from "@/data/content";
+
+/**
+ * Static chessboard of four real photos — not a carousel.
+ * Visual order: top [2][4], bottom [1][3]. File order remains 1→2→3→4.
+ */
+const mosaicSlots = [
+  { photo: heroRealPhotos[1], grid: "col-start-1 row-start-1" },
+  { photo: heroRealPhotos[3], grid: "col-start-2 row-start-1" },
+  { photo: heroRealPhotos[0], grid: "col-start-1 row-start-2" },
+  { photo: heroRealPhotos[2], grid: "col-start-2 row-start-2" },
+] as const;
+
+function HeroPhotoCard({
+  photo,
+  priority,
+  className,
+}: {
+  photo: (typeof heroRealPhotos)[number];
+  priority?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-[0_18px_40px_-20px_rgba(12,58,90,0.45)] ring-1 ring-white/70 max-[360px]:rounded-xl ${photo.bgClass} ${className ?? ""}`}
+    >
+      <Image
+        src={photo.src}
+        alt={photo.alt}
+        fill
+        className={
+          photo.fit === "contain" ? "object-contain" : "object-cover"
+        }
+        style={{ objectPosition: photo.objectPosition }}
+        priority={priority}
+        fetchPriority={priority ? "high" : "auto"}
+        loading={priority ? "eager" : "lazy"}
+        sizes="(max-width: 1024px) 45vw, 22vw"
+      />
+    </div>
+  );
+}
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-milk pt-24 pb-14 sm:pt-32 lg:pb-20">
+    <section className="relative overflow-hidden bg-milk pt-28 pb-14 sm:pt-32 lg:pb-20">
       <div
         className="pointer-events-none absolute inset-0 opacity-70"
         style={{
@@ -91,24 +132,58 @@ export function Hero() {
         </div>
 
         <div
-          className="animate-float-up relative"
+          className="animate-float-up relative mx-auto w-full max-w-md lg:max-w-none"
           style={{ animationDelay: "0.18s" }}
         >
-          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl bg-marine-100 shadow-[0_30px_60px_-25px_rgba(12,58,90,0.45)] ring-1 ring-white/60">
-            <Image
-              src={heroImage}
-              alt="Четыре катера без капитана на Финском заливе у Лахта Центра"
-              fill
-              className="object-contain object-center sm:object-cover"
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
+          {/* Soft route / wave line behind the mosaic — stays under faces */}
+          <svg
+            className="pointer-events-none absolute inset-0 z-0 h-full w-full text-sea-400/35"
+            viewBox="0 0 400 480"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M40 300 C 90 220, 140 180, 200 200 S 310 280, 360 160"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeDasharray="4 8"
             />
+            <path
+              d="M30 340 C 120 300, 180 360, 250 320 S 340 280, 380 300"
+              stroke="currentColor"
+              strokeWidth="1"
+              opacity="0.55"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          <div className="relative z-10 grid grid-cols-2 gap-2.5 max-[360px]:gap-2 sm:gap-3.5">
+            {mosaicSlots.map(({ photo, grid }, i) => {
+              const isPhoto1 = photo.src === heroRealPhotos[0].src;
+              const raiseCol2 = i === 1 || i === 3;
+              return (
+                <HeroPhotoCard
+                  key={photo.src}
+                  photo={photo}
+                  priority={isPhoto1}
+                  className={`${grid} ${
+                    raiseCol2
+                      ? "-mt-4 sm:-mt-5 lg:-mt-6"
+                      : "mt-4 sm:mt-5 lg:mt-6"
+                  }`}
+                />
+              );
+            })}
           </div>
-          <div className="animate-helm-glow absolute -bottom-4 left-3 rounded-2xl border border-marine-200 bg-white/95 px-5 py-4 shadow-lg backdrop-blur sm:-bottom-5 sm:-left-4">
-            <div className="text-lg font-extrabold leading-tight text-marine-700 sm:text-xl">
+
+          <div className="animate-helm-glow absolute -bottom-3 left-2 z-20 rounded-2xl border border-marine-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:-bottom-4 sm:left-0 sm:px-5 sm:py-4">
+            <div className="text-base font-extrabold leading-tight text-marine-700 sm:text-xl">
               Ты сам
             </div>
-            <div className="text-sm font-semibold text-sea-500">за штурвалом</div>
+            <div className="text-sm font-semibold text-sea-500">
+              за штурвалом
+            </div>
           </div>
         </div>
       </div>

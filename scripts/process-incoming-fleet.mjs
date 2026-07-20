@@ -25,8 +25,32 @@ const ROUTES_DIR = path.join(ROOT, "public/images/routes");
 const MAIN = { width: 1600, quality: 86 };
 const THUMB = { width: 480, quality: 80 };
 const HERO = { width: 1920, quality: 84 };
+const HERO_REAL = { width: 1400, quality: 86 };
 const ROUTE = { width: 1600, quality: 85 };
 const MAP = { width: 2400, quality: 90 };
+
+/**
+ * Four real hero photos — fixed owner order (not a carousel).
+ * 1 bottom-left, 2 top-center, 3 bottom-center/right, 4 top-right.
+ */
+const REAL_HERO_PHOTOS = [
+  {
+    source: "photo_2026-07-20 17.56.24.jpeg",
+    out: "hero-real-01.webp",
+  },
+  {
+    source: "photo_2026-07-20 17.56.31.jpeg",
+    out: "hero-real-02.webp",
+  },
+  {
+    source: "photo_2026-07-20 17.56.28.jpeg",
+    out: "hero-real-03.webp",
+  },
+  {
+    source: "photo_2026-07-20 17.56.19.jpeg",
+    out: "hero-real-04.webp",
+  },
+];
 
 /**
  * Route photos — owner-confirmed mapping (file numbers ≠ card order).
@@ -225,7 +249,7 @@ async function processBoat({ slug, prefix, files }, tempDir, report) {
 }
 
 async function processHero(report) {
-  console.log("\n🖼  Hero");
+  console.log("\n🖼  Hero (legacy OG collage)");
   const src = await findHeroSource();
   await ensureDir(HERO_DIR);
   const out = path.join(HERO_DIR, "hero-fleet-lakhta.webp");
@@ -245,6 +269,43 @@ async function processHero(report) {
     width: meta.width,
     height: meta.height,
   };
+}
+
+async function processRealHeroPhotos(report) {
+  console.log("\n🖼  Hero real photos (static chessboard, order 1→4)");
+  await ensureDir(HERO_DIR);
+  report.heroReal = [];
+
+  for (const { source, out } of REAL_HERO_PHOTOS) {
+    const full = path.join(INCOMING, source);
+    if (!fsSync.existsSync(full)) {
+      console.error(`   ✗ missing: ${source}`);
+      report.errors.push({ file: source, error: "missing" });
+      continue;
+    }
+
+    const outPath = path.join(HERO_DIR, out);
+    await sharp(full)
+      .rotate()
+      .resize({
+        width: HERO_REAL.width,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: HERO_REAL.quality, effort: 4 })
+      .toFile(outPath);
+
+    const meta = await sharp(outPath).metadata();
+    console.log(
+      `   ✓ ${source} → /images/hero/${out} (${meta.width}x${meta.height})`
+    );
+    report.heroReal.push({
+      source,
+      output: `/images/hero/${out}`,
+      width: meta.width,
+      height: meta.height,
+    });
+  }
 }
 
 async function processRoutes(report) {
@@ -387,7 +448,14 @@ async function main() {
       return;
     }
 
+    if (only === "hero-real") {
+      await processRealHeroPhotos(report);
+      console.log("\n(only=hero-real: boats, routes, map skipped)");
+      return;
+    }
+
     await processHero(report);
+    await processRealHeroPhotos(report);
     await processRoutes(report);
     await processDrawbridge(report);
     await processMapPdf(report, tempDir);

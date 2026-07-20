@@ -245,6 +245,10 @@ export function CertificatesContent() {
               Стоимость зависит от категории дней. После выбора страница
               перейдёт к короткой форме заявки.
             </p>
+            <p className="mt-3 text-sm leading-relaxed text-marine-800">
+              При выборе Sexy Sea Red или Yellow Space к базовой стоимости
+              прогулки применяется доплата 500 ₽.
+            </p>
           </div>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-2">

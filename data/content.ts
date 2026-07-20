@@ -1,3 +1,11 @@
+import {
+  baseTariffRows,
+  formatRub,
+  fifthPassengerNote,
+  captainServiceNote as captainNoteFromPricing,
+  specialTariffNote,
+} from "@/data/pricing";
+
 export const prepaymentAmount = "1 000 ₽";
 
 export const prepaymentNote = "Предоплата 1 000 ₽ в счёт прогулки";
@@ -16,47 +24,44 @@ export type TariffPanel = {
   perks: string[];
 };
 
-/** Owner-confirmed pricing. Do not "fix" the 1 000 ₽ / 500 ₽ difference. */
+/** Base tariffs — special +500 ₽ for Sexy Sea Red / Yellow Space is derived in data/pricing.ts */
 export const tariffPanels: TariffPanel[] = [
   {
     id: "weekday",
     days: "Понедельник — четверг",
-    rows: [
-      { label: "60 минут", price: "4 990 ₽" },
-      { label: "90 минут", price: "7 000 ₽" },
-      { label: "120 минут", price: "9 000 ₽" },
-      { label: "180 минут", price: "12 000 ₽" },
-      { label: "Разводка мостов", note: "00:00–02:00", price: "10 000 ₽" },
-    ],
+    rows: baseTariffRows.weekday.map((row) => ({
+      label: row.label,
+      note: row.note,
+      price: formatRub(row.price),
+    })),
     perks: [
       "До 13:00 действует скидка 10%",
-      "Пятое место на 5-местном катере — доплата 1 000 ₽",
+      fifthPassengerNote,
     ],
   },
   {
     id: "weekend",
     days: "Пятница — воскресенье",
-    rows: [
-      { label: "60 минут", price: "5 990 ₽" },
-      { label: "90 минут", price: "8 000 ₽" },
-      { label: "120 минут", price: "11 000 ₽" },
-      { label: "180 минут", price: "14 000 ₽" },
-      { label: "Разводка мостов", note: "00:00–02:00", price: "12 000 ₽" },
-    ],
-    perks: ["Пятое место на 5-местном катере — доплата 500 ₽"],
+    rows: baseTariffRows.weekend.map((row) => ({
+      label: row.label,
+      note: row.note,
+      price: formatRub(row.price),
+    })),
+    perks: [fifthPassengerNote],
   },
 ];
 
 export const tariffIncluded = [
   "Бесплатный инструктаж 15 минут входит в каждый тариф",
   "Спасательные жилеты предоставляются",
-  "Услуги капитана — 500 ₽/час",
-  "Доплата за пятое место действует только для Sexy Sea Red и Yellow Space — на остальных катерах до 4 человек",
+  "Услуги капитана — 1 000 ₽/час",
+  "Доплата за пятое место 1 000 ₽ действует только для Sexy Sea Red и Yellow Space — на остальных катерах до 4 человек",
   "Никаких скрытых платежей",
 ];
 
-export const captainServiceNote =
-  "Услуги капитана — 500 ₽/час. Капитан может сопровождать прогулку и обучать управлению катером в течение поездки, в том числе при прохождении под мостами. Возможность и формат услуги подтверждает менеджер.";
+export const captainServiceNote = captainNoteFromPricing;
+
+export { specialTariffNote };
 
 export const tariffConditions = [
   "Бронь: 1 000 ₽ в счёт прогулки",
@@ -211,8 +216,41 @@ export const heroBadges = [
   "Бронь 1 000 ₽ в счёт катания",
 ];
 
-/** Hero fleet photo — Lakhta Center, four boats */
+/** Hero OG / social collage — not used in the visual Hero mosaic */
 export const heroImage = "/images/hero/hero-fleet-lakhta.webp";
+
+/** Four real hero photos — fixed order 1→4, static chessboard (not a carousel) */
+export const heroRealPhotos = [
+  {
+    src: "/images/hero/hero-real-01.webp",
+    alt: "Девушка отдыхает в чёрном катере на воде в Санкт-Петербурге",
+    /** cover works well for portrait source */
+    fit: "cover" as const,
+    objectPosition: "center 18%",
+    bgClass: "bg-[#4a5560]",
+  },
+  {
+    src: "/images/hero/hero-real-02.webp",
+    alt: "Красный катер для самостоятельной прогулки по Санкт-Петербургу",
+    fit: "contain" as const,
+    objectPosition: "center",
+    bgClass: "bg-[#6d7f8f]",
+  },
+  {
+    src: "/images/hero/hero-real-03.webp",
+    alt: "Чёрный катер Total Black у причала",
+    fit: "contain" as const,
+    objectPosition: "center",
+    bgClass: "bg-[#3d4a52]",
+  },
+  {
+    src: "/images/hero/hero-real-04.webp",
+    alt: "Девушка отдыхает в красном катере на воде в Санкт-Петербурге",
+    fit: "cover" as const,
+    objectPosition: "center 22%",
+    bgClass: "bg-[#7a6a62]",
+  },
+] as const;
 
 export const brandAssets = {
   /** Graphic mark only — no brand wordmark (old raster logos retained but unused in UI) */

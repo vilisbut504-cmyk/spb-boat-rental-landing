@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import type { Boat } from "@/data/boats";
 import { useBooking } from "@/components/BookingProvider";
+import { specialTariffRows } from "@/data/pricing";
 
 type Props = {
   boat: Boat;
@@ -179,6 +180,7 @@ export function BoatCard({ boat }: Props) {
   const { scrollToBooking, scrollToTariffs } = useBooking();
   const [activeIndex, setActiveIndex] = useState(0);
   const [specsOpen, setSpecsOpen] = useState(false);
+  const [specialOpen, setSpecialOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const openTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -202,6 +204,15 @@ export function BoatCard({ boat }: Props) {
         {boat.badge && (
           <span className="absolute left-4 top-4 z-10 rounded-full bg-marine-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm">
             {boat.badge}
+          </span>
+        )}
+        {boat.specialTariff && (
+          <span
+            className={`absolute z-10 rounded-full bg-sea-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${
+              boat.badge ? "right-4 top-4" : "left-4 top-4"
+            }`}
+          >
+            Специальный тариф
           </span>
         )}
 
@@ -298,6 +309,66 @@ export function BoatCard({ boat }: Props) {
           <SpecRow label="Инструктаж" value={boat.instructionNote} />
         </dl>
 
+        {boat.specialTariff && (
+          <>
+            <button
+              type="button"
+              onClick={() => setSpecialOpen((v) => !v)}
+              className="mt-4 flex w-full items-center justify-between rounded-xl border border-sea-400/40 bg-sea-400/10 px-4 py-3 text-left text-sm font-semibold text-marine-800 transition-colors hover:border-sea-400"
+              aria-expanded={specialOpen}
+            >
+              Специальный тариф (+500 ₽)
+              <span
+                className={`text-sea-500 transition-transform ${specialOpen ? "rotate-45" : ""}`}
+                aria-hidden="true"
+              >
+                +
+              </span>
+            </button>
+
+            {specialOpen && (
+              <div className="mt-3 space-y-4 rounded-xl border border-marine-100 bg-white px-4 py-3 text-sm">
+                <p className="text-xs leading-relaxed text-ink-soft">
+                  К каждому базовому тарифу прибавляется 500 ₽. Доплата за пятого
+                  пассажира — отдельно 1 000 ₽.
+                </p>
+                {(
+                  [
+                    { id: "weekday" as const, title: "Пн–Чт" },
+                    { id: "weekend" as const, title: "Пт–Вс" },
+                  ] as const
+                ).map((block) => (
+                  <div key={block.id}>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
+                      {block.title}
+                    </p>
+                    <ul className="mt-2 divide-y divide-marine-50">
+                      {specialTariffRows(block.id).map((row) => (
+                        <li
+                          key={`${block.id}-${row.label}`}
+                          className="flex items-baseline justify-between gap-3 py-1.5"
+                        >
+                          <span className="text-ink-soft">
+                            {row.label}
+                            {row.note ? (
+                              <span className="ml-1 text-[11px]">
+                                ({row.note})
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="shrink-0 font-semibold text-marine-700">
+                            {row.priceLabel}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
         <button
           type="button"
           onClick={() => setSpecsOpen((v) => !v)}
@@ -319,6 +390,7 @@ export function BoatCard({ boat }: Props) {
             <SpecRow label="Двигатель" value={boat.engine} />
             <SpecRow label="Мощность" value={boat.power} />
             <SpecRow label="Макс. скорость" value={boat.maxSpeed} />
+            <SpecRow label="Тип хода" value={boat.hullType} />
             <SpecRow label="Бензобак" value={boat.fuelTank} />
           </dl>
         )}

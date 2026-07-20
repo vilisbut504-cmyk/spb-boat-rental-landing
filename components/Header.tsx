@@ -8,6 +8,7 @@ import { navLinks } from "@/data/site";
 import { brandAssets } from "@/data/content";
 import { site } from "@/data/site";
 import { useBooking } from "@/components/BookingProvider";
+import { PhoneIcon } from "@/components/SocialIcons";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -25,6 +26,7 @@ export function Header() {
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
+    document.body.dataset.menuOpen = menuOpen ? "true" : "false";
     if (!menuOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setMenuOpen(false);
@@ -32,6 +34,7 @@ export function Header() {
     document.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = "";
+      document.body.dataset.menuOpen = "false";
       document.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
@@ -45,19 +48,19 @@ export function Header() {
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${headerClass}`}
       >
-        <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
+        <div className="mx-auto flex h-[76px] max-w-6xl items-center justify-between gap-3 px-4 sm:h-[80px] sm:gap-4 sm:px-8">
           <Link
             href="/"
-            className="group flex min-w-0 shrink items-center gap-3"
+            className="group flex min-w-0 shrink items-center gap-2.5 sm:gap-3"
             onClick={() => setMenuOpen(false)}
           >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-marine-100 sm:h-14 sm:w-14">
+            <span className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-marine-100 sm:h-[68px] sm:w-[68px]">
               <Image
                 src={brandAssets.logoSmall}
                 alt={brandAssets.logoAlt}
-                width={260}
-                height={260}
-                className="h-9 w-auto object-contain sm:h-11"
+                width={280}
+                height={168}
+                className="h-[52px] w-auto object-contain sm:h-[64px]"
                 priority
               />
             </span>
@@ -83,7 +86,24 @@ export function Header() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <a
+              href={site.phoneHref}
+              aria-label={site.phoneAriaLabel}
+              className="hidden items-center gap-2 rounded-full border border-marine-100 bg-white px-3.5 py-2 text-sm font-semibold text-marine-700 transition-colors hover:border-marine-400 md:inline-flex"
+            >
+              <PhoneIcon className="h-4 w-4 shrink-0 text-sea-500" />
+              <span className="whitespace-nowrap">{site.phoneDisplay}</span>
+            </a>
+
+            <a
+              href={site.phoneHref}
+              aria-label={site.phoneAriaLabel}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-marine-100 text-marine-700 transition-colors hover:border-marine-400 md:hidden"
+            >
+              <PhoneIcon className="h-5 w-5" />
+            </a>
+
             <button
               type="button"
               onClick={() => scrollToBooking()}
@@ -138,13 +158,13 @@ export function Header() {
         aria-label="Мобильное меню"
       >
         <div className="mb-8 flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-milk ring-1 ring-marine-100">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-milk ring-1 ring-marine-100">
             <Image
               src={brandAssets.logoSmall}
               alt=""
-              width={260}
-              height={260}
-              className="h-8 w-auto object-contain"
+              width={280}
+              height={168}
+              className="h-11 w-auto object-contain"
             />
           </span>
           <div>
@@ -169,13 +189,23 @@ export function Header() {
           ))}
         </ul>
 
+        <a
+          href={site.phoneHref}
+          aria-label={site.phoneAriaLabel}
+          className="mt-6 flex items-center justify-center gap-2 rounded-full border border-marine-200 px-5 py-3.5 font-semibold text-marine-700"
+          onClick={() => setMenuOpen(false)}
+        >
+          <PhoneIcon className="h-5 w-5" />
+          {site.phoneDisplay}
+        </a>
+
         <button
           type="button"
           onClick={() => {
             setMenuOpen(false);
             scrollToBooking();
           }}
-          className="mt-auto rounded-full bg-marine-600 px-5 py-3.5 text-center font-semibold text-white"
+          className="mt-3 rounded-full bg-marine-600 px-5 py-3.5 text-center font-semibold text-white"
         >
           Забронировать
         </button>

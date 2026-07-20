@@ -1,8 +1,17 @@
+import {
+  formatRub,
+  BASE_PRICE_FROM,
+  SPECIAL_PRICE_FROM,
+  isSpecialTariffBoat,
+} from "@/data/pricing";
+
 export type Boat = {
   slug: string;
   name: string;
   shortName?: string;
   priceFrom?: string;
+  /** When true, card shows special tariff table (base + 500 ₽) */
+  specialTariff?: boolean;
   capacity?: string;
   /** Structured max guest count — single source for form and API validation */
   maxGuests: number;
@@ -10,6 +19,7 @@ export type Boat = {
   engine?: string;
   power?: string;
   maxSpeed?: string;
+  hullType?: string;
   fuelTank?: string;
   comfort?: string[];
   bestFor?: string[];
@@ -63,9 +73,9 @@ const sharedSpecs = {
   year: "2026",
   engine: "Японский четырёхтактный инжекторный мотор",
   power: "9,9 л. с.",
-  maxSpeed: "40–50 км/ч",
+  maxSpeed: "30–45 км/ч",
+  hullType: "глиссирующий",
   fuelTank: "20 л",
-  priceFrom: "4 990 ₽",
   instructionNote: "бесплатный подробный инструктаж перед выходом",
   bookingNote: "Бронь: 1 000 ₽ в счёт катания",
   bookable: true as const,
@@ -98,6 +108,12 @@ const whiteSharkGallery = gallery(
   "White Shark"
 );
 
+function boatPriceFrom(name: string): string {
+  return formatRub(
+    isSpecialTariffBoat(name) ? SPECIAL_PRICE_FROM : BASE_PRICE_FROM
+  );
+}
+
 /**
  * Seven bookable boats — single source of truth for Fleet, form and API.
  * Order matches owner-confirmed fleet list.
@@ -107,12 +123,13 @@ export const boats: Boat[] = [
   {
     slug: "tiffany",
     name: "Tiffany",
-    shortName: "Синий катер",
+    shortName: "Светло-голубой катер",
     ...sharedSpecs,
+    priceFrom: boatPriceFrom("Tiffany"),
     capacity: "до 4 человек",
     maxGuests: 4,
     description:
-      "Синий катер Tiffany для стильной прогулки, свидания и ярких кадров на воде.",
+      "Светло-голубой катер Tiffany для стильной прогулки, свидания и ярких кадров на воде.",
     comfort: sharedComfort,
     bestFor: ["свидание", "фотосессия", "прогулка по заливу"],
     images: tiffanyGallery.images,
@@ -124,6 +141,8 @@ export const boats: Boat[] = [
     name: "Sexy Sea Red",
     shortName: "Красный катер",
     ...sharedSpecs,
+    priceFrom: boatPriceFrom("Sexy Sea Red"),
+    specialTariff: true,
     capacity: "до 5 человек",
     maxGuests: 5,
     description:
@@ -140,6 +159,7 @@ export const boats: Boat[] = [
     name: "Red Shark",
     shortName: "Красная акула",
     ...sharedSpecs,
+    priceFrom: boatPriceFrom("Red Shark"),
     capacity: "до 4 человек",
     maxGuests: 4,
     description:
@@ -155,6 +175,7 @@ export const boats: Boat[] = [
     name: "Total Black",
     shortName: "Чёрный катер",
     ...sharedSpecs,
+    priceFrom: boatPriceFrom("Total Black"),
     capacity: "до 4 человек",
     maxGuests: 4,
     description:
@@ -170,6 +191,7 @@ export const boats: Boat[] = [
     name: "Red & Black",
     shortName: "Красно-чёрный катер",
     ...sharedSpecs,
+    priceFrom: boatPriceFrom("Red & Black"),
     capacity: "до 4 человек",
     maxGuests: 4,
     description:
@@ -188,6 +210,8 @@ export const boats: Boat[] = [
     name: "Yellow Space",
     shortName: "Жёлтый катер",
     ...sharedSpecs,
+    priceFrom: boatPriceFrom("Yellow Space"),
+    specialTariff: true,
     capacity: "до 5 человек",
     maxGuests: 5,
     description:
@@ -204,6 +228,7 @@ export const boats: Boat[] = [
     name: "White Shark",
     shortName: "Белая акула",
     ...sharedSpecs,
+    priceFrom: boatPriceFrom("White Shark"),
     capacity: "до 4 человек",
     maxGuests: 4,
     description:

@@ -4,6 +4,7 @@ import {
   captainServiceNote,
   tariffConditions,
   tariffDisclaimer,
+  specialTariffNote,
 } from "@/data/content";
 import { SectionHeading } from "@/components/SectionHeading";
 
@@ -74,6 +75,10 @@ export function Conditions() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-sea-400/30 bg-sea-400/10 px-6 py-5 text-sm leading-relaxed text-marine-800">
+          <p className="font-medium">{specialTariffNote}</p>
         </div>
 
         <div className="mt-6 grid gap-3 rounded-2xl border border-marine-100 bg-milk p-6 sm:grid-cols-2">
