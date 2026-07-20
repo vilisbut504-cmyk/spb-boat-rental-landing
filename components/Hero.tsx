@@ -31,28 +31,25 @@ function HeroPhotoCard({
     >
       {isLandscapeFill ? (
         <>
-          {/* Soft photo backdrop — fills letterbox without solid grey bars */}
-          <Image
-            src={photo.src}
-            alt=""
-            fill
-            aria-hidden="true"
-            className="scale-125 object-cover blur-xl"
-            style={{ objectPosition: photo.objectPosition }}
-            sizes="(max-width: 1024px) 45vw, 22vw"
-            priority={priority}
-            fetchPriority={priority ? "high" : "auto"}
-            loading={priority ? "eager" : "lazy"}
-          />
-          <div
-            className="absolute inset-0 bg-marine-900/35"
-            aria-hidden="true"
-          />
+          {/*
+            Blurred cover of the same photo fills letterboxing.
+            Oversized layer so blur is not clipped into flat grey bars.
+          */}
+          <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+            <div
+              className="absolute -inset-[30%] scale-110 bg-cover bg-center blur-2xl brightness-[0.92] saturate-125"
+              style={{
+                backgroundImage: `url(${photo.src})`,
+                backgroundPosition: photo.objectPosition,
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-marine-900/20 via-transparent to-marine-900/25" />
+          </div>
           <Image
             src={photo.src}
             alt={photo.alt}
             fill
-            className="relative z-[1] object-contain"
+            className="relative z-[1] object-contain drop-shadow-sm"
             style={{ objectPosition: photo.objectPosition }}
             sizes="(max-width: 1024px) 45vw, 22vw"
             priority={priority}
@@ -166,7 +163,7 @@ export function Hero() {
         </div>
 
         <div
-          className="animate-float-up relative mx-auto w-full max-w-md pb-10 lg:max-w-none lg:pb-8"
+          className="animate-float-up relative mx-auto w-full max-w-md lg:max-w-none"
           style={{ animationDelay: "0.18s" }}
         >
           {/* Soft route / wave line behind the mosaic — stays under faces */}
@@ -211,8 +208,8 @@ export function Hero() {
             })}
           </div>
 
-          {/* Badge sits under mosaic so it does not cover faces or boat hulls */}
-          <div className="animate-helm-glow absolute bottom-0 left-1 z-20 rounded-2xl border border-marine-200 bg-white/95 px-3.5 py-2.5 shadow-lg backdrop-blur max-[360px]:left-0 max-[360px]:px-3 max-[360px]:py-2 sm:left-0 sm:px-5 sm:py-3.5">
+          {/* Below mosaic — does not cover faces or boat hulls */}
+          <div className="animate-helm-glow relative z-20 mt-3 inline-flex flex-col rounded-2xl border border-marine-200 bg-white/95 px-3.5 py-2.5 shadow-lg backdrop-blur max-[360px]:mt-2 max-[360px]:px-3 max-[360px]:py-2 sm:mt-4 sm:px-5 sm:py-3.5">
             <div className="text-sm font-extrabold leading-tight text-marine-700 sm:text-lg">
               Ты сам
             </div>
