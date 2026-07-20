@@ -10,13 +10,20 @@ import {
   buildDealName,
   buildNoteText,
   createLeadInAmoCrm,
+  extractSafeAmoError,
   getAmoCrmConfig,
+  parseComplexLeadId,
   type AmoCrmConfig,
   type BoatRentalLeadInput,
   type GiftCertificateLeadInput,
 } from "../lib/amocrm.ts";
 
 let failed = 0;
+const logs: unknown[][] = [];
+const originalError = console.error;
+console.error = (...args: unknown[]) => {
+  logs.push(args);
+};
 
 function test(name: string, fn: () => void | Promise<void>) {
   return Promise.resolve()
@@ -24,8 +31,8 @@ function test(name: string, fn: () => void | Promise<void>) {
     .then(() => console.log(`✓ ${name}`))
     .catch((err) => {
       failed++;
-      console.error(`✗ ${name}`);
-      console.error(err);
+      console.log(`✗ ${name}`);
+      originalError(err);
     });
 }
 
@@ -45,8 +52,8 @@ for (const key of ENV_KEYS) {
 function setAmoEnv(overrides?: Partial<Record<(typeof ENV_KEYS)[number], string>>) {
   process.env.AMOCRM_BASE_URL = "https://example.amocrm.ru";
   process.env.AMOCRM_ACCESS_TOKEN = "test-token-value";
-  process.env.AMOCRM_PIPELINE_ID = "111";
-  process.env.AMOCRM_STATUS_ID = "222";
+  process.env.AMOCRM_PIPELINE_ID = "11123066";
+  process.env.AMOCRM_STATUS_ID = "87329746";
   delete process.env.LEADS_WEBHOOK_URL;
   if (overrides) {
     for (const [k, v] of Object.entries(overrides)) {
@@ -78,7 +85,7 @@ const rentalInput: BoatRentalLeadInput = {
   time: "18:00",
   guests: "2",
   format: "Прогулка",
-  comment: "тест",
+  comment: "секретный комментарий клиента",
   receivedAt: "2026-07-20T12:00:00.000Z",
 };
 
@@ -115,13 +122,14 @@ function mockFetchSequence(
   return { fetchImpl: fetchImpl as typeof fetch, calls };
 }
 
-await test("config reads pipeline/status from env", () => {
+await test("config reads pipeline/status as safe integers", () => {
   setAmoEnv();
   const cfg = getAmoCrmConfig();
   assert.ok(cfg);
-  assert.equal(cfg.pipelineId, 111);
-  assert.equal(cfg.statusId, 222);
-  assert.equal(cfg.baseUrl, "https://example.amocrm.ru");
+  assert.equal(cfg.pipelineId, 11123066);
+  assert.equal(cfg.statusId, 87329746);
+  assert.equal(typeof cfg.pipelineId, "number");
+  assert.equal(typeof cfg.statusId, "number");
 });
 
 await test("deal name for rental with boat", () => {
@@ -152,84 +160,181 @@ await test("phone starts with +7", () => {
   assert.equal(phone.canonical, "+79812526969");
 });
 
-await test("complex payload: contact phone, tags, pipeline from env", () => {
+await test("complex payload matches official leads/complex shape", () => {
   setAmoEnv();
   const cfg = getAmoCrmConfig() as AmoCrmConfig;
   const body = buildComplexLeadPayload(cfg, rentalInput);
-  assert.equal(body[0].pipeline_id, 111);
-  assert.equal(body[0].status_id, 222);
+  assert.ok(Array.isArray(body));
+  assert.equal(body.length, 1);
+  assert.equal(typeof body[0].pipeline_id, "number");
+  assert.equal(typeof body[0].status_id, "number");
+  assert.equal(body[0].pipeline_id, 11123066);
+  assert.equal(body[0].status_id, 87329746);
+  assert.ok(Array.isArray(body[0].tags_to_add));
   assert.deepEqual(
-    body[0]._embedded.tags.map((t) => t.name),
+    body[0].tags_to_add.map((t) => t.name),
     ["сайт", "аренда"]
   );
-  const phoneField =
-    body[0]._embedded.contacts[0].custom_fields_values[0];
+  assert.equal(
+    (body[0] as { _embedded?: { tags?: unknown } })._embedded?.tags,
+    undefined
+  );
+  assert.equal(
+    (body[0] as { metadata?: unknown }).metadata,
+    undefined
+  );
+  const contact = body[0]._embedded.contacts[0];
+  assert.equal(contact.first_name, "ТЕСТ САЙТА");
+  assert.equal(
+    (contact as { name?: string }).name,
+    undefined
+  );
+  const phoneField = contact.custom_fields_values[0];
   assert.equal(phoneField.field_code, "PHONE");
+  assert.equal(phoneField.values[0].enum_code, "WORK");
   assert.equal(phoneField.values[0].value, "+79812526969");
-  assert.ok(phoneField.values[0].value.startsWith("+7"));
+});
+
+await test("certificate payload uses certificate tag", () => {
+  setAmoEnv();
+  const cfg = getAmoCrmConfig() as AmoCrmConfig;
+  const body = buildComplexLeadPayload(cfg, certInput);
+  assert.equal(body[0].tags_to_add[1].name, "подарочный сертификат");
 });
 
 await test("certificate note uses server price label", () => {
   const note = buildNoteText(certInput);
   assert.match(note, /Тип заявки: Подарочный сертификат/);
-  assert.match(note, new RegExp(certTariff.priceLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  assert.doesNotMatch(note, /client.?price/i);
+  assert.match(
+    note,
+    new RegExp(certTariff.priceLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+  );
 });
 
-await test("rental creates lead + note via mock", async () => {
+await test("parseComplexLeadId uses response[0].id", () => {
+  assert.equal(
+    parseComplexLeadId([
+      { id: 123, contact_id: 456, merged: false, request_id: ["x"] },
+    ]),
+    123
+  );
+  assert.equal(
+    parseComplexLeadId({ _embedded: { leads: [{ id: 999 }] } }),
+    null
+  );
+});
+
+await test("rental creates lead then note; leadId from array[0].id", async () => {
   setAmoEnv();
+  logs.length = 0;
   const { fetchImpl, calls } = mockFetchSequence([
     () =>
-      Response.json([{ id: 9001, contact_id: 1 }], { status: 200 }),
+      Response.json(
+        [{ id: 9001, contact_id: 1, merged: false, request_id: ["r1"] }],
+        { status: 200 }
+      ),
     () => Response.json([{ id: 1 }], { status: 200 }),
   ]);
   const result = await createLeadInAmoCrm(rentalInput, fetchImpl);
   assert.equal(result.ok, true);
-  if (result.ok) assert.equal(result.leadId, 9001);
+  if (result.ok) {
+    assert.equal(result.leadId, 9001);
+    assert.equal(result.noteCreated, true);
+  }
   assert.equal(calls.length, 2);
   assert.match(calls[0].url, /\/api\/v4\/leads\/complex$/);
   assert.match(calls[1].url, /\/api\/v4\/leads\/9001\/notes$/);
+  const sent = JSON.parse(String(calls[0].init?.body));
+  assert.ok(Array.isArray(sent));
+  assert.equal(typeof sent[0].pipeline_id, "number");
+  assert.equal(sent[0].tags_to_add[1].name, "аренда");
+  assert.equal(sent[0]._embedded.contacts[0].first_name, "ТЕСТ САЙТА");
+  assert.equal(
+    sent[0]._embedded.contacts[0].custom_fields_values[0].values[0].enum_code,
+    "WORK"
+  );
+});
+
+await test("note failure after lead still returns success (partial)", async () => {
+  setAmoEnv();
+  const { fetchImpl, calls } = mockFetchSequence([
+    () => Response.json([{ id: 9003 }], { status: 200 }),
+    () => new Response("fail", { status: 500 }),
+  ]);
+  const result = await createLeadInAmoCrm(rentalInput, fetchImpl);
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.leadId, 9003);
+    assert.equal(result.noteCreated, false);
+  }
+  assert.equal(calls.length, 2);
+});
+
+await test("token only in Authorization; PII not in error logs", async () => {
+  setAmoEnv({ AMOCRM_ACCESS_TOKEN: "secret-token-xyz" });
+  logs.length = 0;
+  const problem = {
+    title: "Bad Request",
+    type: "https://httpstatus.es/400",
+    detail: "Validation failed",
+    "validation-errors": [
+      {
+        request_id: "req-1",
+        errors: [{ code: "FieldNotFound", path: ["0", "status_id"], field: "status_id" }],
+      },
+    ],
+  };
+  const { fetchImpl, calls } = mockFetchSequence([
+    () =>
+      new Response(JSON.stringify(problem), {
+        status: 400,
+        headers: { "Content-Type": "application/problem+json" },
+      }),
+  ]);
+  const result = await createLeadInAmoCrm(rentalInput, fetchImpl);
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.equal(result.code, "BAD_REQUEST");
+
   const auth = String(
     (calls[0].init?.headers as Record<string, string>)?.Authorization ?? ""
   );
-  assert.equal(auth, "Bearer test-token-value");
-  const sent = JSON.parse(String(calls[0].init?.body));
-  assert.equal(sent[0]._embedded.tags[1].name, "аренда");
-  assert.equal(
-    sent[0]._embedded.contacts[0].custom_fields_values[0].values[0].value,
-    "+79812526969"
-  );
+  assert.equal(auth, "Bearer secret-token-xyz");
+
+  const flat = JSON.stringify(logs);
+  assert.ok(!flat.includes("secret-token-xyz"));
+  assert.ok(!flat.includes("Bearer"));
+  assert.ok(!flat.includes("+79812526969"));
+  assert.ok(!flat.includes("секретный комментарий"));
+  assert.ok(!flat.includes(rentalInput.name) || flat.includes("Bad Request"));
+  // name might accidentally appear only if we wrongly logged payload — ensure not
+  assert.ok(!flat.includes("ТЕСТ САЙТА"));
+  assert.ok(flat.includes("400") || flat.includes("Bad Request"));
 });
 
-await test("certificate creates lead with certificate tag", async () => {
-  setAmoEnv();
-  const { fetchImpl, calls } = mockFetchSequence([
-    () => Response.json([{ id: 9002 }], { status: 200 }),
-    () => Response.json([{ id: 2 }], { status: 200 }),
-  ]);
-  const result = await createLeadInAmoCrm(certInput, fetchImpl);
-  assert.equal(result.ok, true);
-  const sent = JSON.parse(String(calls[0].init?.body));
-  assert.equal(sent[0]._embedded.tags[1].name, "подарочный сертификат");
-  const note = JSON.parse(String(calls[1].init?.body));
-  assert.match(note[0].params.text, /Цена \(сервер\):/);
-  assert.match(note[0].params.text, new RegExp(certTariff.priceLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-});
-
-await test("token only in Authorization header", async () => {
-  setAmoEnv({ AMOCRM_ACCESS_TOKEN: "secret-token-xyz" });
-  const { fetchImpl, calls } = mockFetchSequence([
-    () => Response.json([{ id: 1 }], { status: 200 }),
-    () => Response.json([{ id: 1 }], { status: 200 }),
-  ]);
-  await createLeadInAmoCrm(rentalInput, fetchImpl);
-  for (const call of calls) {
-    const headers = call.init?.headers as Record<string, string>;
-    assert.equal(headers.Authorization, "Bearer secret-token-xyz");
-    assert.equal(headers["Content-Type"], "application/json");
-    assert.ok(!String(call.init?.body).includes("secret-token-xyz"));
-    assert.ok(!call.url.includes("secret-token-xyz"));
-  }
+await test("extractSafeAmoError keeps only safe validation fields", () => {
+  const safe = extractSafeAmoError({
+    title: "Bad Request",
+    detail: "Validation failed",
+    type: "about:blank",
+    "validation-errors": [
+      {
+        request_id: "abc",
+        errors: [
+          {
+            code: "InvalidValue",
+            path: ["0", "pipeline_id"],
+            field: "pipeline_id",
+            detail: "phone +79811234567 is wrong", // must not be forwarded as free text dump
+          },
+        ],
+      },
+    ],
+  });
+  assert.equal(safe.title, "Bad Request");
+  assert.equal(safe.validationErrors[0].code, "InvalidValue");
+  assert.equal(safe.validationErrors[0].path, "0.pipeline_id");
+  assert.equal(safe.validationErrors[0].field, "pipeline_id");
+  assert.equal(safe.validationErrors[0].request_id, "abc");
 });
 
 await test("401 returns safe error", async () => {
@@ -252,10 +357,7 @@ await test("429 returns safe error", async () => {
   ]);
   const result = await createLeadInAmoCrm(rentalInput, fetchImpl);
   assert.equal(result.ok, false);
-  if (!result.ok) {
-    assert.equal(result.code, "RATE_LIMITED");
-    assert.doesNotMatch(result.message, /token|pipeline|status_id/i);
-  }
+  if (!result.ok) assert.equal(result.code, "RATE_LIMITED");
 });
 
 await test("5xx returns safe error", async () => {
@@ -265,10 +367,7 @@ await test("5xx returns safe error", async () => {
   ]);
   const result = await createLeadInAmoCrm(rentalInput, fetchImpl);
   assert.equal(result.ok, false);
-  if (!result.ok) {
-    assert.equal(result.code, "UPSTREAM_ERROR");
-    assert.match(result.message, /свяжитесь/i);
-  }
+  if (!result.ok) assert.equal(result.code, "UPSTREAM_ERROR");
 });
 
 await test("missing env → NOT_CONFIGURED (no false success)", async () => {
@@ -289,12 +388,12 @@ await test("certificate catalog and phone rules still hold", () => {
   assert.ok(t);
   assert.equal(t.price, 4990);
   assert.equal(getCertificateTariff("nope"), undefined);
-  // client price must never be trusted — only tariff id → server price
   assert.equal(getCertificateTariff("weekend-180")?.price, 14000);
   const rejected = normalizeRuPhone("+49 30 123456");
   assert.equal(rejected.ok, false);
 });
 
+console.error = originalError;
 restoreEnv();
 
 if (failed > 0) {

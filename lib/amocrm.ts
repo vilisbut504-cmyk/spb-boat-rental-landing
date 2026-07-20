@@ -61,7 +61,7 @@ export type GiftCertificateLeadInput = {
 export type AmoCrmLeadInput = BoatRentalLeadInput | GiftCertificateLeadInput;
 
 export type AmoCrmResult =
-  | { ok: true; leadId: number }
+  | { ok: true; leadId: number; noteCreated: boolean }
   | {
       ok: false;
       code:
@@ -77,6 +77,15 @@ export type AmoCrmResult =
       message: string;
     };
 
+function toSafePositiveInt(raw: string, label: string): number | null {
+  const n = Number(raw.trim());
+  if (!Number.isSafeInteger(n) || n <= 0) {
+    console.error(`[amocrm] ${label} is invalid`);
+    return null;
+  }
+  return n;
+}
+
 export function getAmoCrmConfig(): AmoCrmConfig | null {
   const baseUrl = (process.env.AMOCRM_BASE_URL ?? "").trim().replace(/\/$/, "");
   const accessToken = (process.env.AMOCRM_ACCESS_TOKEN ?? "").trim();
@@ -87,7 +96,6 @@ export function getAmoCrmConfig(): AmoCrmConfig | null {
     return null;
   }
 
-  // Accept amoCRM and Kommo hosts; ignore path leftovers after trim.
   let host = "";
   try {
     host = new URL(baseUrl).host.toLowerCase();
@@ -101,20 +109,15 @@ export function getAmoCrmConfig(): AmoCrmConfig | null {
     host.endsWith(".kommo.com") ||
     host === "kommo.com";
   if (!baseUrl.startsWith("https://") || !hostOk) {
-    console.error("[amocrm] AMOCRM_BASE_URL host is not an amoCRM/Kommo https host");
+    console.error(
+      "[amocrm] AMOCRM_BASE_URL host is not an amoCRM/Kommo https host"
+    );
     return null;
   }
 
-  const pipelineId = Number(pipelineRaw);
-  const statusId = Number(statusRaw);
-  if (!Number.isInteger(pipelineId) || pipelineId <= 0) {
-    console.error("[amocrm] AMOCRM_PIPELINE_ID is invalid");
-    return null;
-  }
-  if (!Number.isInteger(statusId) || statusId <= 0) {
-    console.error("[amocrm] AMOCRM_STATUS_ID is invalid");
-    return null;
-  }
+  const pipelineId = toSafePositiveInt(pipelineRaw, "AMOCRM_PIPELINE_ID");
+  const statusId = toSafePositiveInt(statusRaw, "AMOCRM_STATUS_ID");
+  if (pipelineId == null || statusId == null) return null;
 
   return { baseUrl, accessToken, pipelineId, statusId };
 }
@@ -264,32 +267,146 @@ async function amoFetch(
   }
 }
 
-function parseComplexLeadId(body: unknown): number | null {
+/** Extract lead id from top-level complex response array: response[0].id */
+export function parseComplexLeadId(body: unknown): number | null {
   if (!Array.isArray(body) || body.length === 0) return null;
   const first = body[0] as { id?: unknown };
   const id = Number(first?.id);
-  return Number.isInteger(id) && id > 0 ? id : null;
+  if (!Number.isSafeInteger(id) || id <= 0) return null;
+  return id;
 }
 
-/** Exported for unit tests — builds the complex-leads body without calling the API. */
+type SafeValidationError = {
+  request_id?: string;
+  field?: string;
+  code?: string;
+  path?: string;
+  index?: number | string;
+};
+
+/** Sanitize amoCRM problem+json / validation body for logs — no PII. */
+export function extractSafeAmoError(body: unknown): {
+  title?: string;
+  detail?: string;
+  type?: string;
+  validationErrors: SafeValidationError[];
+} {
+  if (!body || typeof body !== "object") {
+    return { validationErrors: [] };
+  }
+  const obj = body as Record<string, unknown>;
+  const title = typeof obj.title === "string" ? obj.title : undefined;
+  const detail = typeof obj.detail === "string" ? obj.detail : undefined;
+  const type = typeof obj.type === "string" ? obj.type : undefined;
+
+  const validationErrors: SafeValidationError[] = [];
+  const rawList = obj["validation-errors"] ?? obj.validation_errors;
+
+  if (Array.isArray(rawList)) {
+    for (const entry of rawList) {
+      if (!entry || typeof entry !== "object") continue;
+      const item = entry as Record<string, unknown>;
+      const requestId =
+        typeof item.request_id === "string" ? item.request_id : undefined;
+      const errors = Array.isArray(item.errors) ? item.errors : [item];
+
+      for (const err of errors) {
+        if (!err || typeof err !== "object") continue;
+        const e = err as Record<string, unknown>;
+        const safe: SafeValidationError = {};
+        if (requestId) safe.request_id = requestId;
+        if (typeof e.request_id === "string") safe.request_id = e.request_id;
+        if (typeof e.field === "string") safe.field = e.field;
+        if (typeof e.code === "string") safe.code = e.code;
+        if (typeof e.path === "string") safe.path = e.path;
+        if (typeof e.index === "number" || typeof e.index === "string") {
+          safe.index = e.index;
+        }
+        // Some amo responses put path as array like ["0", "status_id"]
+        if (Array.isArray(e.path)) {
+          safe.path = e.path.map(String).join(".");
+        }
+        if (Object.keys(safe).length > 0) validationErrors.push(safe);
+      }
+    }
+  }
+
+  return { title, detail, type, validationErrors };
+}
+
+async function logFailedAmoResponse(
+  label: string,
+  res: Response
+): Promise<void> {
+  const contentType = (res.headers.get("content-type") || "").toLowerCase();
+  const isJson =
+    contentType.includes("application/json") ||
+    contentType.includes("application/problem+json");
+
+  if (!isJson) {
+    console.error(`[amocrm] ${label} failed`, { status: res.status });
+    return;
+  }
+
+  try {
+    const body = await res.json();
+    const safe = extractSafeAmoError(body);
+    console.error(`[amocrm] ${label} failed`, {
+      status: res.status,
+      title: safe.title,
+      detail: safe.detail,
+      type: safe.type,
+      validationErrors: safe.validationErrors,
+    });
+  } catch {
+    console.error(`[amocrm] ${label} failed`, { status: res.status });
+  }
+}
+
+/**
+ * Official leads/complex payload shape.
+ * - tags via tags_to_add (not _embedded.tags)
+ * - contact via first_name + PHONE field_code
+ * - no metadata (keep deal on the chosen status, not unsorted)
+ */
 export function buildComplexLeadPayload(
   config: AmoCrmConfig,
   input: AmoCrmLeadInput
 ) {
+  const pipelineId = Number(config.pipelineId);
+  const statusId = Number(config.statusId);
+  if (!Number.isSafeInteger(pipelineId) || pipelineId <= 0) {
+    throw new Error("invalid_pipeline_id");
+  }
+  if (!Number.isSafeInteger(statusId) || statusId <= 0) {
+    throw new Error("invalid_status_id");
+  }
+
+  const firstName = input.name.trim();
+  const phone = input.phone.trim();
+  if (!/^\+7\d{10}$/.test(phone)) {
+    throw new Error("invalid_phone");
+  }
+
   return [
     {
       name: buildDealName(input),
-      pipeline_id: config.pipelineId,
-      status_id: config.statusId,
+      pipeline_id: pipelineId,
+      status_id: statusId,
+      tags_to_add: dealTags(input.kind),
       _embedded: {
-        tags: dealTags(input.kind),
         contacts: [
           {
-            name: input.name,
+            first_name: firstName,
             custom_fields_values: [
               {
                 field_code: "PHONE",
-                values: [{ value: input.phone, enum_code: "WORK" }],
+                values: [
+                  {
+                    enum_code: "WORK",
+                    value: phone,
+                  },
+                ],
               },
             ],
           },
@@ -313,7 +430,16 @@ export async function createLeadInAmoCrm(
       };
     }
 
-    const complexBody = buildComplexLeadPayload(config, input);
+    let complexBody: ReturnType<typeof buildComplexLeadPayload>;
+    try {
+      complexBody = buildComplexLeadPayload(config, input);
+    } catch {
+      return {
+        ok: false,
+        code: "BAD_REQUEST",
+        message: safeUpstreamMessage("BAD_REQUEST"),
+      };
+    }
 
     let complexRes: Response;
     try {
@@ -339,7 +465,7 @@ export async function createLeadInAmoCrm(
     }
 
     if (!complexRes.ok) {
-      console.error("[amocrm] complex status", complexRes.status);
+      await logFailedAmoResponse("complex", complexRes);
       return mapHttpStatus(complexRes.status);
     }
 
@@ -355,7 +481,7 @@ export async function createLeadInAmoCrm(
     }
 
     const leadId = parseComplexLeadId(complexJson);
-    if (!leadId) {
+    if (leadId == null) {
       console.error("[amocrm] complex response missing lead id");
       return {
         ok: false,
@@ -371,6 +497,7 @@ export async function createLeadInAmoCrm(
       },
     ];
 
+    let noteCreated = false;
     try {
       const noteRes = await amoFetch(
         config,
@@ -381,17 +508,22 @@ export async function createLeadInAmoCrm(
         },
         fetchImpl
       );
-      if (!noteRes.ok) {
-        console.error("[amocrm] note status", noteRes.status);
+      if (noteRes.ok) {
+        noteCreated = true;
+      } else {
+        console.error("[amocrm] note partial failure", {
+          leadId,
+          status: noteRes.status,
+        });
       }
     } catch (err) {
-      console.error(
-        "[amocrm] note request failed",
-        err instanceof Error ? err.name : "error"
-      );
+      console.error("[amocrm] note partial failure", {
+        leadId,
+        error: err instanceof Error ? err.name : "error",
+      });
     }
 
-    return { ok: true, leadId };
+    return { ok: true, leadId, noteCreated };
   } catch (err) {
     console.error(
       "[amocrm] unexpected",
