@@ -26,12 +26,15 @@ const MAIN = { width: 1600, quality: 86 };
 const THUMB = { width: 480, quality: 80 };
 const HERO = { width: 1920, quality: 84 };
 const HERO_REAL = { width: 1400, quality: 86 };
+/** Shared hero card canvas — matches UI aspect-[4/5] */
+const HERO_CARD = { width: 1000, height: 1250 };
 const ROUTE = { width: 1600, quality: 85 };
 const MAP = { width: 2400, quality: 90 };
 
 /**
  * Four real hero photos — fixed owner order (not a carousel).
- * 1 bottom-left, 2 top-center, 3 bottom-center/right, 4 top-right.
+ * Visual mosaic: TL 01, TR 02, BL 03, BR 04.
+ * Landscape sources are composed into a 4:5 canvas with blurred fill baked in.
  */
 const REAL_HERO_PHOTOS = [
   {
@@ -271,8 +274,55 @@ async function processHero(report) {
   };
 }
 
+/**
+ * Build a 4:5 hero WebP.
+ * Portrait → cover crop (faces biased to top).
+ * Landscape → blurred cover backdrop + sharp contain foreground (no grey bars).
+ */
+async function writeHeroRealCard(inputPath, outPath) {
+  const { width: W, height: H } = HERO_CARD;
+  const base = sharp(inputPath).rotate();
+  const meta = await base.metadata();
+  const isLandscape = (meta.width || 0) > (meta.height || 0);
+
+  if (!isLandscape) {
+    await sharp(inputPath)
+      .rotate()
+      .resize(W, H, { fit: "cover", position: "top" })
+      .webp({ quality: HERO_REAL.quality, effort: 4 })
+      .toFile(outPath);
+    return;
+  }
+
+  const background = await sharp(inputPath)
+    .rotate()
+    .resize(W, H, { fit: "cover", position: "centre" })
+    .blur(32)
+    .modulate({ brightness: 0.82, saturation: 1.08 })
+    .toBuffer();
+
+  const foreground = await sharp(inputPath)
+    .rotate()
+    .resize({
+      width: W,
+      height: H,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .toBuffer();
+
+  const fgMeta = await sharp(foreground).metadata();
+  const left = Math.max(0, Math.round((W - (fgMeta.width || W)) / 2));
+  const top = Math.max(0, Math.round((H - (fgMeta.height || H)) / 2));
+
+  await sharp(background)
+    .composite([{ input: foreground, left, top }])
+    .webp({ quality: HERO_REAL.quality, effort: 4 })
+    .toFile(outPath);
+}
+
 async function processRealHeroPhotos(report) {
-  console.log("\n🖼  Hero real photos (static chessboard, order 1→4)");
+  console.log("\n🖼  Hero real photos (static 2×2, order 1→4, 4:5 cards)");
   await ensureDir(HERO_DIR);
   report.heroReal = [];
 
@@ -285,15 +335,7 @@ async function processRealHeroPhotos(report) {
     }
 
     const outPath = path.join(HERO_DIR, out);
-    await sharp(full)
-      .rotate()
-      .resize({
-        width: HERO_REAL.width,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .webp({ quality: HERO_REAL.quality, effort: 4 })
-      .toFile(outPath);
+    await writeHeroRealCard(full, outPath);
 
     const meta = await sharp(outPath).metadata();
     console.log(

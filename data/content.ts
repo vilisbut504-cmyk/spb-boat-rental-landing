@@ -222,32 +222,28 @@ export const heroImage = "/images/hero/hero-fleet-lakhta.webp";
 /**
  * Four real hero photos — fixed order 1→4.
  * Visual mosaic: TL 01, TR 02, BL 03, BR 04 (girl → boat / boat → girl).
- * Landscape (02, 03): fit "contain" + blurred cover backdrop in Hero (no solid grey bars).
+ * All WebPs are 4:5; landscape sources have blurred fill baked in at process time.
  */
 export const heroRealPhotos = [
   {
     src: "/images/hero/hero-real-01.webp",
     alt: "Девушка отдыхает в чёрном катере на воде в Санкт-Петербурге",
-    fit: "cover" as const,
-    objectPosition: "center 20%",
+    objectPosition: "center 18%",
   },
   {
     src: "/images/hero/hero-real-02.webp",
     alt: "Красный катер для самостоятельной прогулки по Санкт-Петербургу",
-    fit: "contain" as const,
     objectPosition: "center center",
   },
   {
     src: "/images/hero/hero-real-03.webp",
     alt: "Чёрный катер Total Black у причала",
-    fit: "contain" as const,
     objectPosition: "center center",
   },
   {
     src: "/images/hero/hero-real-04.webp",
     alt: "Девушка отдыхает в красном катере на воде в Санкт-Петербурге",
-    fit: "cover" as const,
-    objectPosition: "center 24%",
+    objectPosition: "center 22%",
   },
 ] as const;
 

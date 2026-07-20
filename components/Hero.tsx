@@ -6,6 +6,7 @@ import { heroBadges, heroRealPhotos } from "@/data/content";
  * Static 2×2 mosaic — not a carousel.
  * Visual order matches file order: 01 TL, 02 TR, 03 BL, 04 BR
  * (girl → boat / boat → girl).
+ * Landscape WebPs already include a baked 4:5 blurred fill (see process-incoming).
  */
 const mosaicSlots = [
   { photo: heroRealPhotos[0], grid: "col-start-1 row-start-1" },
@@ -23,53 +24,21 @@ function HeroPhotoCard({
   priority?: boolean;
   className?: string;
 }) {
-  const isLandscapeFill = photo.fit === "contain";
-
   return (
     <div
-      className={`relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-[0_18px_40px_-20px_rgba(12,58,90,0.45)] ring-1 ring-white/70 max-[360px]:rounded-xl ${className ?? ""}`}
+      className={`relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-marine-900/10 shadow-[0_18px_40px_-20px_rgba(12,58,90,0.45)] ring-1 ring-white/70 max-[360px]:rounded-xl ${className ?? ""}`}
     >
-      {isLandscapeFill ? (
-        <>
-          {/*
-            Blurred cover of the same photo fills letterboxing.
-            Oversized layer so blur is not clipped into flat grey bars.
-          */}
-          <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-            <div
-              className="absolute -inset-[30%] scale-110 bg-cover bg-center blur-2xl brightness-[0.92] saturate-125"
-              style={{
-                backgroundImage: `url(${photo.src})`,
-                backgroundPosition: photo.objectPosition,
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-marine-900/20 via-transparent to-marine-900/25" />
-          </div>
-          <Image
-            src={photo.src}
-            alt={photo.alt}
-            fill
-            className="relative z-[1] object-contain drop-shadow-sm"
-            style={{ objectPosition: photo.objectPosition }}
-            sizes="(max-width: 1024px) 45vw, 22vw"
-            priority={priority}
-            fetchPriority={priority ? "high" : "auto"}
-            loading={priority ? "eager" : "lazy"}
-          />
-        </>
-      ) : (
-        <Image
-          src={photo.src}
-          alt={photo.alt}
-          fill
-          className="object-cover"
-          style={{ objectPosition: photo.objectPosition }}
-          priority={priority}
-          fetchPriority={priority ? "high" : "auto"}
-          loading={priority ? "eager" : "lazy"}
-          sizes="(max-width: 1024px) 45vw, 22vw"
-        />
-      )}
+      <Image
+        src={photo.src}
+        alt={photo.alt}
+        fill
+        className="object-cover"
+        style={{ objectPosition: photo.objectPosition }}
+        priority={priority}
+        fetchPriority={priority ? "high" : "auto"}
+        loading={priority ? "eager" : "lazy"}
+        sizes="(max-width: 1024px) 45vw, 22vw"
+      />
     </div>
   );
 }
@@ -166,7 +135,6 @@ export function Hero() {
           className="animate-float-up relative mx-auto w-full max-w-md lg:max-w-none"
           style={{ animationDelay: "0.18s" }}
         >
-          {/* Soft route / wave line behind the mosaic — stays under faces */}
           <svg
             className="pointer-events-none absolute inset-0 z-0 h-full w-full text-sea-400/35"
             viewBox="0 0 400 480"
@@ -208,7 +176,6 @@ export function Hero() {
             })}
           </div>
 
-          {/* Below mosaic — does not cover faces or boat hulls */}
           <div className="animate-helm-glow relative z-20 mt-3 inline-flex flex-col rounded-2xl border border-marine-200 bg-white/95 px-3.5 py-2.5 shadow-lg backdrop-blur max-[360px]:mt-2 max-[360px]:px-3 max-[360px]:py-2 sm:mt-4 sm:px-5 sm:py-3.5">
             <div className="text-sm font-extrabold leading-tight text-marine-700 sm:text-lg">
               Ты сам
