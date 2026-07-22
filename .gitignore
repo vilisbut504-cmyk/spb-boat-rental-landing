@@ -57,3 +57,4 @@ next-env.d.ts
 # Incoming originals — local only, never commit heavy sources
 /incoming-assets*/
 /incoming-assets/
+.tmp-hero-qa/
