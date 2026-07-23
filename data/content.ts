@@ -231,14 +231,14 @@ export const heroRealPhotos = [
     objectPosition: "center 18%",
   },
   {
-    src: "/images/hero/hero-real-02.webp",
-    alt: "Красный катер для самостоятельной прогулки по Санкт-Петербургу",
+    src: "/images/hero/hero-sexy-sea-red-2026.webp",
+    alt: "Красный катер Sexy Sea Red на ходу по воде в Санкт-Петербурге",
     objectPosition: "center center",
   },
   {
-    src: "/images/hero/hero-real-03.webp",
-    alt: "Чёрный катер Total Black у причала",
-    objectPosition: "center center",
+    src: "/images/hero/hero-total-black-2026.webp",
+    alt: "Чёрный катер Total Black на воде в Санкт-Петербурге",
+    objectPosition: "center 42%",
   },
   {
     src: "/images/hero/hero-real-04.webp",

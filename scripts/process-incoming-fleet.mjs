@@ -42,12 +42,12 @@ const REAL_HERO_PHOTOS = [
     out: "hero-real-01.webp",
   },
   {
-    source: "photo_2026-07-20 17.56.31.jpeg",
-    out: "hero-real-02.webp",
+    source: "photo_2026-07-23 10.02.21.jpeg",
+    out: "hero-sexy-sea-red-2026.webp",
   },
   {
-    source: "photo_2026-07-20 17.56.28.jpeg",
-    out: "hero-real-03.webp",
+    source: "photo_2026-07-23 10.02.14.jpeg",
+    out: "hero-total-black-2026.webp",
   },
   {
     source: "photo_2026-07-20 17.56.19.jpeg",
