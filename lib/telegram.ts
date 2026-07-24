@@ -1,20 +1,29 @@
 /**
  * Server-only Telegram Bot API helper for lead notifications.
  * Never log the bot token, chat id, API URL, or PII from the message body.
+ *
+ * Production note (Timeweb): connections to api.telegram.org use IPv4-only DNS
+ * lookup inside this module to avoid hanging dual-stack / IPv6 paths.
  */
 
+import dns from "node:dns";
+import https from "node:https";
+import type { LookupFunction } from "node:net";
 import type { AmoCrmLeadInput } from "./amocrm";
 
-/** Per-attempt AbortController budget (was 8s; raised after Timeweb timeouts). */
-export const REQUEST_TIMEOUT_MS = 10_000;
-const RETRY_DELAY_MS = 500;
-const MAX_ATTEMPTS = 2;
+/** Hard cap for the single Telegram attempt on the /api/lead critical path. */
+export const REQUEST_TIMEOUT_MS = 3_000;
+
+/** Confirms Telegram DNS is forced to IPv4 (no global Node DNS change). */
+export const TELEGRAM_DNS_FAMILY = 4 as const;
+
 /** Telegram Bot API hard limit is 4096; keep headroom for safety. */
 const MAX_MESSAGE_LENGTH = 3900;
+const TELEGRAM_HOST = "api.telegram.org";
 
 export type TelegramNotifyResult =
   | { ok: true; skipped: true; reason: "configuration_missing" }
-  | { ok: true; skipped: false; attempts: number }
+  | { ok: true; skipped: false }
   | {
       ok: false;
       reason:
@@ -25,16 +34,22 @@ export type TelegramNotifyResult =
         | "invalid_response";
       status?: number;
       errorCode?: number;
-      attempts: number;
     };
 
-type AttemptOutcome =
-  | { kind: "success" }
-  | { kind: "timeout"; retryable: true }
-  | { kind: "network_error"; retryable: true }
-  | { kind: "http_error"; status: number; retryable: boolean }
-  | { kind: "telegram_api_error"; errorCode?: number; retryable: false }
-  | { kind: "invalid_response"; retryable: false };
+export type TelegramTransportResult = {
+  status: number;
+  body: unknown;
+};
+
+/**
+ * Injectable transport for tests. Production uses IPv4 HTTPS to api.telegram.org.
+ */
+export type TelegramTransport = (args: {
+  token: string;
+  chatId: string;
+  text: string;
+  signal: AbortSignal;
+}) => Promise<TelegramTransportResult>;
 
 function getTelegramConfig(): { token: string; chatId: string } | null {
   const token = (process.env.TELEGRAM_BOT_TOKEN ?? "").trim();
@@ -102,179 +117,208 @@ export function buildLeadTelegramText(input: AmoCrmLeadInput): string {
   return `${text.slice(0, MAX_MESSAGE_LENGTH - 1)}…`;
 }
 
-export function isRetryableTelegramHttpStatus(status: number): boolean {
-  return status === 429 || status === 502 || status === 503 || status === 504;
+/**
+ * Merge caller lookup options with a hard IPv4 family for Telegram only.
+ * Exported for unit tests — does not touch process-wide DNS.
+ */
+export function withTelegramIpv4LookupOptions(
+  options?: dns.LookupOptions | number
+): dns.LookupOneOptions {
+  if (typeof options === "number") {
+    return { family: TELEGRAM_DNS_FAMILY };
+  }
+  return {
+    ...(options ?? {}),
+    family: TELEGRAM_DNS_FAMILY,
+    all: false,
+  };
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * DNS lookup forced to IPv4 for Telegram only.
+ * Does not change process-wide DNS defaults.
+ */
+export function telegramIpv4Lookup(
+  hostname: string,
+  options: dns.LookupOneOptions,
+  callback: (
+    err: NodeJS.ErrnoException | null,
+    address: string,
+    family: number
+  ) => void
+): void {
+  dns.lookup(
+    hostname,
+    withTelegramIpv4LookupOptions(options),
+    (err, address, family) => {
+      if (err) {
+        callback(err, "", 0);
+        return;
+      }
+      callback(null, String(address), Number(family) || TELEGRAM_DNS_FAMILY);
+    }
+  );
 }
 
-function logDiag(
+function abortError(): Error {
+  const err = new Error("The operation was aborted");
+  err.name = "AbortError";
+  return err;
+}
+
+/**
+ * POST JSON to Telegram Bot API over HTTPS with IPv4-only DNS and TLS verified.
+ * Path embeds the bot token — never log hostname+path together as a full URL.
+ */
+export const defaultTelegramIpv4Transport: TelegramTransport = ({
+  token,
+  chatId,
+  text,
+  signal,
+}) =>
+  new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(abortError());
+      return;
+    }
+
+    const body = JSON.stringify({
+      chat_id: chatId,
+      text,
+      disable_web_page_preview: true,
+    });
+
+    const req = https.request(
+      {
+        hostname: TELEGRAM_HOST,
+        method: "POST",
+        path: `/bot${token}/sendMessage`,
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(body),
+        },
+        lookup: telegramIpv4Lookup as LookupFunction,
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (chunk: Buffer) => {
+          chunks.push(chunk);
+        });
+        res.on("end", () => {
+          const raw = Buffer.concat(chunks).toString("utf8");
+          let parsed: unknown = null;
+          if (raw) {
+            try {
+              parsed = JSON.parse(raw);
+            } catch {
+              parsed = null;
+            }
+          }
+          resolve({ status: res.statusCode ?? 0, body: parsed });
+        });
+      }
+    );
+
+    const onAbort = () => {
+      req.destroy(abortError());
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+
+    req.on("error", (err) => {
+      signal.removeEventListener("abort", onAbort);
+      if (signal.aborted || (err instanceof Error && err.name === "AbortError")) {
+        reject(abortError());
+        return;
+      }
+      reject(err);
+    });
+
+    req.on("close", () => {
+      signal.removeEventListener("abort", onAbort);
+    });
+
+    req.write(body);
+    req.end();
+  });
+
+function logTelegram(
   event:
+    | "success"
     | "configuration_missing"
     | "timeout"
     | "network_error"
     | "http_error"
     | "telegram_api_error"
-    | "invalid_response"
-    | "success"
-    | "retry",
-  extra?: { status?: number; errorCode?: number; attempt?: number }
+    | "invalid_response",
+  status?: number
 ): void {
-  const payload: Record<string, number | string> = { event };
-  if (extra?.status != null) payload.status = extra.status;
-  if (extra?.errorCode != null) payload.errorCode = extra.errorCode;
-  if (extra?.attempt != null) payload.attempt = extra.attempt;
-  if (event === "success") {
-    console.info("[telegram]", payload);
-  } else {
-    console.warn("[telegram]", payload);
+  if (event === "http_error" && status != null) {
+    console.warn(`[telegram] http_error status=${status}`);
+    return;
   }
+  if (event === "success") {
+    console.info(`[telegram] ${event}`);
+    return;
+  }
+  console.warn(`[telegram] ${event}`);
 }
 
-async function sendOnce(
-  config: { token: string; chatId: string },
-  text: string,
-  fetchImpl: typeof fetch
-): Promise<AttemptOutcome> {
+/**
+ * Notify the configured Telegram chat after a successful amoCRM lead create.
+ * Single attempt, ~3s max — never throws; never retries on the /api/lead path.
+ */
+export async function notifyLeadTelegram(
+  input: AmoCrmLeadInput,
+  transport: TelegramTransport = defaultTelegramIpv4Transport
+): Promise<TelegramNotifyResult> {
+  const config = getTelegramConfig();
+  if (!config) {
+    logTelegram("configuration_missing");
+    return { ok: true, skipped: true, reason: "configuration_missing" };
+  }
+
+  const text = buildLeadTelegramText(input);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    // URL is intentionally not logged — it embeds the bot token.
-    const res = await fetchImpl(
-      `https://api.telegram.org/bot${config.token}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: config.chatId,
-          text,
-          disable_web_page_preview: true,
-        }),
-        signal: controller.signal,
-      }
-    );
+    const res = await transport({
+      token: config.token,
+      chatId: config.chatId,
+      text,
+      signal: controller.signal,
+    });
 
-    if (!res.ok) {
-      return {
-        kind: "http_error",
-        status: res.status,
-        retryable: isRetryableTelegramHttpStatus(res.status),
-      };
+    if (!res.status || res.status < 200 || res.status >= 300) {
+      logTelegram("http_error", res.status || 0);
+      return { ok: false, reason: "http_error", status: res.status || 0 };
     }
 
-    let body: unknown;
-    try {
-      body = await res.json();
-    } catch {
-      return { kind: "invalid_response", retryable: false };
-    }
-
+    const body = res.body;
     if (
       !body ||
       typeof body !== "object" ||
       (body as { ok?: unknown }).ok !== true
     ) {
+      logTelegram("telegram_api_error");
       const errorCode = (body as { error_code?: unknown } | null)?.error_code;
-      return {
-        kind: "telegram_api_error",
-        errorCode: typeof errorCode === "number" ? errorCode : undefined,
-        retryable: false,
-      };
-    }
-
-    return { kind: "success" };
-  } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") {
-      return { kind: "timeout", retryable: true };
-    }
-    return { kind: "network_error", retryable: true };
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-function toNotifyResult(
-  outcome: AttemptOutcome,
-  attempts: number
-): TelegramNotifyResult {
-  switch (outcome.kind) {
-    case "success":
-      return { ok: true, skipped: false, attempts };
-    case "timeout":
-      return { ok: false, reason: "timeout", attempts };
-    case "network_error":
-      return { ok: false, reason: "network_error", attempts };
-    case "http_error":
-      return {
-        ok: false,
-        reason: "http_error",
-        status: outcome.status,
-        attempts,
-      };
-    case "telegram_api_error":
       return {
         ok: false,
         reason: "telegram_api_error",
-        errorCode: outcome.errorCode,
-        attempts,
+        errorCode: typeof errorCode === "number" ? errorCode : undefined,
       };
-    case "invalid_response":
-      return { ok: false, reason: "invalid_response", attempts };
-  }
-}
-
-/**
- * Notify the configured Telegram chat after a successful amoCRM lead create.
- * Never throws — failures are logged without secrets or PII.
- * One retry only for timeout / network / HTTP 429|502|503|504.
- */
-export async function notifyLeadTelegram(
-  input: AmoCrmLeadInput,
-  fetchImpl: typeof fetch = fetch
-): Promise<TelegramNotifyResult> {
-  const config = getTelegramConfig();
-  if (!config) {
-    logDiag("configuration_missing");
-    return { ok: true, skipped: true, reason: "configuration_missing" };
-  }
-
-  const text = buildLeadTelegramText(input);
-  let last: AttemptOutcome = { kind: "network_error", retryable: true };
-
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    last = await sendOnce(config, text, fetchImpl);
-
-    if (last.kind === "success") {
-      logDiag("success", { attempt });
-      return { ok: true, skipped: false, attempts: attempt };
     }
 
-    if (last.kind === "timeout") {
-      logDiag("timeout", { attempt });
-    } else if (last.kind === "network_error") {
-      logDiag("network_error", { attempt });
-    } else if (last.kind === "http_error") {
-      logDiag("http_error", { status: last.status, attempt });
-    } else if (last.kind === "telegram_api_error") {
-      logDiag("telegram_api_error", {
-        errorCode: last.errorCode,
-        attempt,
-      });
-    } else {
-      logDiag("invalid_response", { attempt });
+    logTelegram("success");
+    return { ok: true, skipped: false };
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      logTelegram("timeout");
+      return { ok: false, reason: "timeout" };
     }
-
-    const canRetry = last.retryable && attempt < MAX_ATTEMPTS;
-    if (!canRetry) {
-      return toNotifyResult(last, attempt);
-    }
-
-    logDiag("retry", { attempt });
-    await sleep(RETRY_DELAY_MS);
+    logTelegram("network_error");
+    return { ok: false, reason: "network_error" };
+  } finally {
+    clearTimeout(timer);
   }
-
-  return toNotifyResult(last, MAX_ATTEMPTS);
 }

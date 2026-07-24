@@ -1,16 +1,20 @@
 /**
- * Telegram lead notification checks (no real network, no secrets).
+ * Telegram lead notification checks (no real Telegram network, no secrets).
  * Run: npm run test:telegram
  */
 
 import assert from "node:assert/strict";
 import {
   buildLeadTelegramText,
-  isRetryableTelegramHttpStatus,
+  defaultTelegramIpv4Transport,
   isTelegramConfigured,
   notifyLeadTelegram,
   REQUEST_TIMEOUT_MS,
   sanitizeTelegramPlainText,
+  TELEGRAM_DNS_FAMILY,
+  telegramIpv4Lookup,
+  withTelegramIpv4LookupOptions,
+  type TelegramTransport,
 } from "../lib/telegram.ts";
 import type { AmoCrmLeadInput } from "../lib/amocrm.ts";
 
@@ -59,15 +63,10 @@ const cert: AmoCrmLeadInput = {
   receivedAt: "2026-07-24T12:00:00.000Z",
 };
 
-assert.equal(REQUEST_TIMEOUT_MS, 10_000);
-assert.equal(isRetryableTelegramHttpStatus(429), true);
-assert.equal(isRetryableTelegramHttpStatus(502), true);
-assert.equal(isRetryableTelegramHttpStatus(503), true);
-assert.equal(isRetryableTelegramHttpStatus(504), true);
-assert.equal(isRetryableTelegramHttpStatus(400), false);
-assert.equal(isRetryableTelegramHttpStatus(401), false);
-assert.equal(isRetryableTelegramHttpStatus(403), false);
-assert.equal(isRetryableTelegramHttpStatus(404), false);
+assert.equal(REQUEST_TIMEOUT_MS, 3_000);
+assert.equal(TELEGRAM_DNS_FAMILY, 4);
+assert.equal(typeof telegramIpv4Lookup, "function");
+assert.equal(typeof defaultTelegramIpv4Transport, "function");
 
 const minimalText = buildLeadTelegramText(boatMinimal);
 assert.match(minimalText, /Тип заявки: Аренда катера/);
@@ -111,130 +110,110 @@ function restoreEnv() {
   else process.env.TELEGRAM_CHAT_ID = prevChat;
 }
 
-// Missing env → skip, no fetch
+// Missing env → skip, transport never called (amoCRM path stays healthy)
 delete process.env.TELEGRAM_BOT_TOKEN;
 delete process.env.TELEGRAM_CHAT_ID;
 assert.equal(isTelegramConfigured(), false);
-let missingFetchCalls = 0;
+let missingCalls = 0;
 const missing = await notifyLeadTelegram(boatMinimal, async () => {
-  missingFetchCalls += 1;
-  return new Response("{}");
+  missingCalls += 1;
+  return { status: 200, body: { ok: true } };
 });
 assert.equal(missing.ok, true);
 assert.equal(missing.skipped, true);
 assert.equal(missing.reason, "configuration_missing");
-assert.equal(missingFetchCalls, 0);
+assert.equal(missingCalls, 0);
 
 process.env.TELEGRAM_BOT_TOKEN = "TEST_TOKEN_NOT_REAL";
 process.env.TELEGRAM_CHAT_ID = "-100123";
 assert.equal(isTelegramConfigured(), true);
 
-// Success on first attempt
+// Success — single attempt
 let successCalls = 0;
 const ok = await notifyLeadTelegram(boatMinimal, async () => {
   successCalls += 1;
-  return new Response(JSON.stringify({ ok: true, result: {} }), {
-    status: 200,
-  });
+  return { status: 200, body: { ok: true, result: {} } };
 });
 assert.equal(ok.ok, true);
 assert.equal(ok.skipped, false);
-if (!ok.ok || ok.skipped) throw new Error("expected telegram success");
-assert.equal(ok.attempts, 1);
 assert.equal(successCalls, 1);
 
-// Timeout then success on retry
-let timeoutCalls = 0;
-const timeoutThenOk = await notifyLeadTelegram(boatMinimal, async () => {
-  timeoutCalls += 1;
-  if (timeoutCalls === 1) {
-    const err = new Error("aborted");
-    err.name = "AbortError";
-    throw err;
-  }
-  return new Response(JSON.stringify({ ok: true, result: {} }), {
-    status: 200,
-  });
-});
-assert.equal(timeoutThenOk.ok, true);
-assert.equal(timeoutThenOk.skipped, false);
-if (!timeoutThenOk.ok || timeoutThenOk.skipped) {
-  throw new Error("expected telegram success after timeout retry");
+// IPv4 is forced for Telegram DNS (pure options + default transport wiring)
+{
+  const forced = withTelegramIpv4LookupOptions({ family: 6, hints: 0 });
+  assert.equal(forced.family, 4);
+  assert.equal(forced.all, false);
+  assert.equal(withTelegramIpv4LookupOptions(6).family, 4);
+  assert.equal(withTelegramIpv4LookupOptions().family, 4);
+  assert.equal(typeof telegramIpv4Lookup, "function");
+  assert.equal(defaultTelegramIpv4Transport.name, "defaultTelegramIpv4Transport");
 }
-assert.equal(timeoutThenOk.attempts, 2);
-assert.equal(timeoutCalls, 2);
 
-// Network error twice → soft fail after retry
+// Timeout after ~3s, no second attempt
+let timeoutCalls = 0;
+const hangTransport: TelegramTransport = async ({ signal }) => {
+  timeoutCalls += 1;
+  await new Promise<never>((_, reject) => {
+    const onAbort = () => {
+      const err = new Error("aborted");
+      err.name = "AbortError";
+      reject(err);
+    };
+    if (signal.aborted) {
+      onAbort();
+      return;
+    }
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+  return { status: 200, body: { ok: true } };
+};
+const started = Date.now();
+const timedOut = await notifyLeadTelegram(boatMinimal, hangTransport);
+const elapsed = Date.now() - started;
+assert.equal(timedOut.ok, false);
+if (timedOut.ok) throw new Error("expected timeout");
+assert.equal(timedOut.reason, "timeout");
+assert.equal(timeoutCalls, 1);
+assert.ok(elapsed >= 2500, `timeout too fast: ${elapsed}ms`);
+assert.ok(elapsed < 4500, `timeout too slow: ${elapsed}ms`);
+
+// Network failure — soft fail, no retry, does not throw
 let networkCalls = 0;
 const networkFail = await notifyLeadTelegram(boatMinimal, async () => {
   networkCalls += 1;
   throw new TypeError("fetch failed");
 });
 assert.equal(networkFail.ok, false);
-if (networkFail.ok) throw new Error("expected network failure");
+if (networkFail.ok) throw new Error("expected network_error");
 assert.equal(networkFail.reason, "network_error");
-assert.equal(networkFail.attempts, 2);
-assert.equal(networkCalls, 2);
+assert.equal(networkCalls, 1);
 
-// HTTP 429 then success
-let rateCalls = 0;
-const rateThenOk = await notifyLeadTelegram(boatMinimal, async () => {
-  rateCalls += 1;
-  if (rateCalls === 1) {
-    return new Response("rate", { status: 429 });
-  }
-  return new Response(JSON.stringify({ ok: true, result: {} }), {
-    status: 200,
-  });
+// HTTP error — soft fail, no retry
+let httpCalls = 0;
+const httpFail = await notifyLeadTelegram(boatMinimal, async () => {
+  httpCalls += 1;
+  return { status: 503, body: null };
 });
-assert.equal(rateThenOk.ok, true);
-assert.equal(rateThenOk.skipped, false);
-if (!rateThenOk.ok || rateThenOk.skipped) {
-  throw new Error("expected telegram success after 429 retry");
-}
-assert.equal(rateThenOk.attempts, 2);
-assert.equal(rateCalls, 2);
+assert.equal(httpFail.ok, false);
+if (httpFail.ok) throw new Error("expected http_error");
+assert.equal(httpFail.reason, "http_error");
+assert.equal(httpFail.status, 503);
+assert.equal(httpCalls, 1);
 
-// HTTP 503 twice → soft fail
-let unavailableCalls = 0;
-const unavailable = await notifyLeadTelegram(boatMinimal, async () => {
-  unavailableCalls += 1;
-  return new Response("down", { status: 503 });
-});
-assert.equal(unavailable.ok, false);
-if (unavailable.ok) throw new Error("expected 503 failure");
-assert.equal(unavailable.reason, "http_error");
-assert.equal(unavailable.status, 503);
-assert.equal(unavailable.attempts, 2);
-assert.equal(unavailableCalls, 2);
-
-// HTTP 400 — no retry
-let badCalls = 0;
-const badRequest = await notifyLeadTelegram(boatMinimal, async () => {
-  badCalls += 1;
-  return new Response("bad", { status: 400 });
-});
-assert.equal(badRequest.ok, false);
-if (badRequest.ok) throw new Error("expected 400 failure");
-assert.equal(badRequest.reason, "http_error");
-assert.equal(badRequest.status, 400);
-assert.equal(badRequest.attempts, 1);
-assert.equal(badCalls, 1);
-
-// telegram_api_error (HTTP 200, ok:false) — no retry
+// API error (HTTP 200, ok:false) — soft fail, no retry
 let apiCalls = 0;
-const apiError = await notifyLeadTelegram(boatMinimal, async () => {
+const apiFail = await notifyLeadTelegram(boatMinimal, async () => {
   apiCalls += 1;
-  return new Response(JSON.stringify({ ok: false, error_code: 400 }), {
-    status: 200,
-  });
+  return { status: 200, body: { ok: false, error_code: 400 } };
 });
-assert.equal(apiError.ok, false);
-if (apiError.ok) throw new Error("expected telegram_api_error");
-assert.equal(apiError.reason, "telegram_api_error");
-assert.equal(apiError.errorCode, 400);
-assert.equal(apiError.attempts, 1);
+assert.equal(apiFail.ok, false);
+if (apiFail.ok) throw new Error("expected telegram_api_error");
+assert.equal(apiFail.reason, "telegram_api_error");
+assert.equal(apiFail.errorCode, 400);
 assert.equal(apiCalls, 1);
+
+// Explicit: timeout also does not retry
+assert.equal(timeoutCalls, 1);
 
 restoreEnv();
 
