@@ -18,6 +18,7 @@ import {
   hasAnyAmoCrmEnv,
   isAmoCrmConfigured,
 } from "@/lib/amocrm";
+import { notifyLeadTelegram } from "@/lib/telegram";
 
 export const runtime = "nodejs";
 
@@ -120,6 +121,8 @@ async function deliverLead(
     if (amoReady) {
       const amo = await createLeadInAmoCrm(amoInput);
       if (amo.ok) {
+        // Secondary channel only — never fail the client if Telegram is down.
+        await notifyLeadTelegram(amoInput);
         return NextResponse.json({
           ok: true,
           testMode: false,
@@ -130,6 +133,7 @@ async function deliverLead(
       if (amo.code === "NOT_CONFIGURED") {
         return notConfiguredResponse(amo.message);
       }
+      // amoCRM failed — do not notify Telegram about a non-created lead.
       return NextResponse.json(
         {
           ok: false,

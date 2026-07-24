@@ -14,7 +14,8 @@
     "check:build": "npm run images:webp && npm run build",
     "check:amocrm": "node scripts/check-amocrm.mjs",
     "test:amocrm": "node --experimental-strip-types scripts/test-amocrm.ts",
-    "test:phone": "node --experimental-strip-types scripts/test-phone.ts"
+    "test:phone": "node --experimental-strip-types scripts/test-phone.ts",
+    "test:telegram": "node --experimental-strip-types scripts/test-telegram.ts"
   },
   "dependencies": {
     "next": "16.2.9",
